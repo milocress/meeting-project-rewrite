@@ -13,18 +13,22 @@
   We want our program to be built from a shell interface. This is because the backend and the frontend should be largely separable and modular. So, I'm creating a shell interface that can take several commands:
 
   - User Operations
-    - =useradd=
-    - =userdel=
+    - =userAdd=
+    - =userDel=
     - =getUsers=
+    - =getStudents=
+
+
   - Activity Operations
-    - =activityadd=
-    - =activitydel=
-    - =activityinvite=
+    - =activityAdd=
+    - =activityDel=
+    - =activityInvite=
+    - =joinActivity=
     - =getActivities=
   - Message Operations
-    - =messageadd=
-    - =messagedel=
-    - =getMessages=
+    - =messageAdd=
+    - =messageDel=
+    - =getMessagesForUser=
 
   These should be exposed to the interactive shell, command line arguments, and frontend via an =execute("<command>", ["<arg1>", "[arg2]", "[...]"])= function. Two libraries exist, one for each of those goals. The first, =commander=, handles command line, and the next, =inquirer=, handles interactive code.
 

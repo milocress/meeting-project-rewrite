@@ -1,0 +1,30 @@
+extends layout
+include ./parallax-mixin.pug
+
+block title
+  title= title
+
+block content
+  +parallax('/res/background-edited1.jpg')
+    h1.header.center.red-text.text-lighten-2 Create an activity
+  div.container
+    br
+    form.col.s12(method='post')
+      div.row
+        div.input-field.col.s12
+          input.validate#activity_title(type="text" name="activity_title")
+          label.active(for="activity_title") Activity Title
+      div.row
+        div.input-field.col.s12
+          textarea.materialize-textarea#activity_description(name="activity_description")
+          label(for="textarea1") Activity Description
+      div.row
+        input.datepicker#datepicker(type="text" name="datepicker")
+        label(for="datepicker") Pick a Date
+      div.row
+        div.input-field.col.s12
+          input.validate#requested_attendees(type="text" name="requested_attendees")
+          label.active(for="requested_attendees") Requested Attendees
+      div.row
+        button.col.s12.btn.btn-large.waves-effect.red.darken-2(type="submit") Submit
+

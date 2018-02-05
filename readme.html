@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title></title>
+<!-- 2018-01-31 Wed 16:37 -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="generator" content="Org-mode">
+
+<link  href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/js/bootstrap.min.js"></script>
+<style type="text/css">
+/* org mode styles on top of twbs */
+
+html {
+    position: relative;
+    min-height: 100%;
+}
+
+body {
+    font-size: 18px;
+    margin-bottom: 105px;
+}
+
+footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 101px;
+    background-color: #f5f5f5;
+}
+
+footer > div {
+    padding: 10px;
+}
+
+footer p {
+    margin: 0 0 5px;
+    text-align: center;
+    font-size: 16px;
+}
+
+#table-of-contents {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+blockquote p {
+    font-size: 18px;
+}
+
+pre {
+    font-size: 16px;
+}
+
+.footpara {
+    display: inline-block;
+}
+
+figcaption {
+  font-size: 16px;
+  color: #666;
+  font-style: italic;
+  padding-bottom: 15px;
+}
+
+/* from twbs docs */
+
+.bs-docs-sidebar.affix {
+    position: static;
+}
+@media (min-width: 768px) {
+    .bs-docs-sidebar {
+        padding-left: 20px;
+    }
+}
+
+/* All levels of nav */
+.bs-docs-sidebar .nav > li > a {
+    display: block;
+    padding: 4px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #999;
+}
+.bs-docs-sidebar .nav > li > a:hover,
+.bs-docs-sidebar .nav > li > a:focus {
+    padding-left: 19px;
+    color: #A1283B;
+    text-decoration: none;
+    background-color: transparent;
+    border-left: 1px solid #A1283B;
+}
+.bs-docs-sidebar .nav > .active > a,
+.bs-docs-sidebar .nav > .active:hover > a,
+.bs-docs-sidebar .nav > .active:focus > a {
+    padding-left: 18px;
+    font-weight: bold;
+    color: #A1283B;
+    background-color: transparent;
+    border-left: 2px solid #A1283B;
+}
+
+/* Nav: second level (shown on .active) */
+.bs-docs-sidebar .nav .nav {
+    display: none; /* Hide by default, but at >768px, show it */
+    padding-bottom: 10px;
+}
+.bs-docs-sidebar .nav .nav > li > a {
+    padding-top: 1px;
+    padding-bottom: 1px;
+    padding-left: 30px;
+    font-size: 12px;
+    font-weight: normal;
+}
+.bs-docs-sidebar .nav .nav > li > a:hover,
+.bs-docs-sidebar .nav .nav > li > a:focus {
+    padding-left: 29px;
+}
+.bs-docs-sidebar .nav .nav > .active > a,
+.bs-docs-sidebar .nav .nav > .active:hover > a,
+.bs-docs-sidebar .nav .nav > .active:focus > a {
+    padding-left: 28px;
+    font-weight: 500;
+}
+
+/* Nav: third level (shown on .active) */
+.bs-docs-sidebar .nav .nav .nav {
+    padding-bottom: 10px;
+}
+.bs-docs-sidebar .nav .nav .nav > li > a {
+    padding-top: 1px;
+    padding-bottom: 1px;
+    padding-left: 40px;
+    font-size: 12px;
+    font-weight: normal;
+}
+.bs-docs-sidebar .nav .nav .nav > li > a:hover,
+.bs-docs-sidebar .nav .nav .nav > li > a:focus {
+    padding-left: 39px;
+}
+.bs-docs-sidebar .nav .nav .nav > .active > a,
+.bs-docs-sidebar .nav .nav .nav > .active:hover > a,
+.bs-docs-sidebar .nav .nav .nav > .active:focus > a {
+    padding-left: 38px;
+    font-weight: 500;
+}
+
+/* Show and affix the side nav when space allows it */
+@media (min-width: 992px) {
+    .bs-docs-sidebar .nav > .active > ul {
+        display: block;
+    }
+    /* Widen the fixed sidebar */
+    .bs-docs-sidebar.affix,
+    .bs-docs-sidebar.affix-bottom {
+        width: 213px;
+    }
+    .bs-docs-sidebar.affix {
+        position: fixed; /* Undo the static from mobile first approach */
+        top: 20px;
+    }
+    .bs-docs-sidebar.affix-bottom {
+        position: absolute; /* Undo the static from mobile first approach */
+    }
+    .bs-docs-sidebar.affix .bs-docs-sidenav,.bs-docs-sidebar.affix-bottom .bs-docs-sidenav {
+        margin-top: 0;
+        margin-bottom: 0
+    }
+}
+@media (min-width: 1200px) {
+    /* Widen the fixed sidebar again */
+    .bs-docs-sidebar.affix-bottom,
+    .bs-docs-sidebar.affix {
+        width: 263px;
+    }
+}
+</style>
+<script type="text/javascript">
+$(function() {
+    'use strict';
+
+    $('.bs-docs-sidebar li').first().addClass('active');
+
+    $(document.body).scrollspy({target: '.bs-docs-sidebar'});
+
+    $('.bs-docs-sidebar').affix();
+});
+</script>
+</head>
+<body>
+<div id="content" class="container">
+<div class="row"><div class="col-md-9"><h1 class="title"></h1>
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> Interactive Shell</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+We want our program to be built from a shell interface. This is because the backend and the frontend should be largely separable and modular. So, I'm creating a shell interface that can take several commands:
+</p>
+
+<ul class="org-ul">
+<li>User Operations
+<ul class="org-ul">
+<li>useradd
+</li>
+<li>userdel
+</li>
+<li>usermod
+</li>
+</ul>
+</li>
+<li>Activity Operations
+<ul class="org-ul">
+<li>activityadd
+</li>
+<li>activitydel
+</li>
+<li>activitymod
+</li>
+<li>activityinvite
+</li>
+</ul>
+</li>
+<li>Message Operations
+<ul class="org-ul">
+<li>messageadd
+</li>
+<li>messagedel
+</li>
+<li>messagemod
+</li>
+</ul>
+</li>
+</ul>
+
+<p>
+These should be exposed to the interactive shell, command line arguments, and frontend via an <code>execute("&lt;command&gt;", ["&lt;arg1&gt;", "[arg2]", "[...]"])</code> function. Two libraries exist, one for each of those goals. The first, <code>commander</code>, handles command line, and the next, <code>inquirer</code>, handles interactive code.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-javascript" id="interactive_shell_initialization"><span style="color: #4f97d7; font-weight: bold;">const</span> <span style="color: #7590db;">program</span>  = require<span style="color: #4f97d7;">(</span><span style="color: #2d9574;">'commander'</span><span style="color: #4f97d7;">)</span>;
+<span style="color: #4f97d7; font-weight: bold;">const</span> <span style="color: #7590db;">inquirer</span> = require<span style="color: #4f97d7;">(</span><span style="color: #2d9574;">'inquirer'</span><span style="color: #4f97d7;">)</span>;
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> Passport Configuration</h2>
+<div class="outline-text-2" id="text-2">
+<div class="org-src-container">
+
+<pre class="src src-javascript" id="passport_initialization"><span style="color: #4f97d7; font-weight: bold;">const</span> <span style="color: #7590db;">passport</span> = require<span style="color: #4f97d7;">(</span><span style="color: #2d9574;">'passport'</span><span style="color: #4f97d7;">)</span>;
+<span style="color: #4f97d7; font-weight: bold;">const</span> <span style="color: #7590db;">bcrypt</span>   = require<span style="color: #4f97d7;">(</span><span style="color: #2d9574;">'bcrypt-nodejs'</span><span style="color: #4f97d7;">)</span>;
+
+<span style="color: #4f97d7; font-weight: bold;">function</span> <span style="color: #bc6ec5; font-weight: bold;">generateHash</span> <span style="color: #4f97d7;">(</span><span style="color: #7590db;">password</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+    <span style="color: #4f97d7; font-weight: bold;">return</span> bcrypt.hashSync<span style="color: #bc6ec5;">(</span>password, bcrypt.genSaltSync<span style="color: #2d9574;">(</span><span style="color: #a45bad;">12</span><span style="color: #2d9574;">)</span>, <span style="color: #a45bad;">null</span><span style="color: #bc6ec5;">)</span>;
+<span style="color: #4f97d7;">}</span>
+<span style="color: #4f97d7; font-weight: bold;">function</span> <span style="color: #bc6ec5; font-weight: bold;">validPassword</span> <span style="color: #4f97d7;">(</span><span style="color: #7590db;">password</span>, <span style="color: #7590db;">hashed_password</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+    <span style="color: #4f97d7; font-weight: bold;">return</span> bcrypt.compareSync<span style="color: #bc6ec5;">(</span>password, hashed_password<span style="color: #bc6ec5;">)</span>;
+<span style="color: #4f97d7;">}</span>;
+
+<span style="color: #4f97d7; font-weight: bold;">var</span> <span style="color: #7590db;">Strategy</span> = require<span style="color: #4f97d7;">(</span><span style="color: #2d9574;">'passport-local'</span><span style="color: #4f97d7;">)</span>.Strategy;
+
+
+<span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">Configure the local strategy for use by Passport.</span>
+<span style="color: #2aa1ae; background-color: #292e34;">//</span>
+<span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">The local strategy require a `verify` function which receives the credentials</span>
+<span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">(`username` and `password`) submitted by the user.  The function must verify</span>
+<span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">that the password is correct and then invoke `cb` with a user object, which</span>
+<span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">will be set at `req.user` in route handlers after authentication.</span>
+passport.use<span style="color: #4f97d7;">(</span><span style="color: #2d9574;">'local-login'</span>, <span style="color: #4f97d7; font-weight: bold;">new</span> <span style="color: #ce537a; font-weight: bold;">LocalStrategy</span><span style="color: #bc6ec5;">(</span><span style="color: #2d9574;">{</span>
+    <span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">by default, local strategy uses username and password, we will override with email</span>
+    usernameField : <span style="color: #2d9574;">'email'</span>,
+    passwordField : <span style="color: #2d9574;">'password'</span>,
+    passReqToCallback : <span style="color: #a45bad;">true</span> <span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">allows us to pass back the entire request to the callback</span>
+<span style="color: #2d9574;">}</span>,
+    <span style="color: #4f97d7; font-weight: bold;">function</span><span style="color: #2d9574;">(</span><span style="color: #7590db;">req</span>, <span style="color: #7590db;">email</span>, <span style="color: #7590db;">password</span>, <span style="color: #7590db;">cb</span><span style="color: #2d9574;">)</span> <span style="color: #2d9574;">{</span>
+        findByEmail<span style="color: #67b11d;">(</span>email, <span style="color: #4f97d7; font-weight: bold;">function</span><span style="color: #b1951d;">(</span><span style="color: #7590db;">err</span>, <span style="color: #7590db;">user</span><span style="color: #b1951d;">)</span> <span style="color: #b1951d;">{</span>
+            <span style="color: #4f97d7; font-weight: bold;">if</span> <span style="color: #4f97d7;">(</span>err<span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span> <span style="color: #4f97d7; font-weight: bold;">return</span> cb<span style="color: #bc6ec5;">(</span>err<span style="color: #bc6ec5;">)</span>; <span style="color: #4f97d7;">}</span>
+            <span style="color: #4f97d7; font-weight: bold;">if</span> <span style="color: #4f97d7;">(</span>!user<span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span> <span style="color: #4f97d7; font-weight: bold;">return</span> cb<span style="color: #bc6ec5;">(</span><span style="color: #a45bad;">null</span>, <span style="color: #a45bad;">false</span><span style="color: #bc6ec5;">)</span>; <span style="color: #4f97d7;">}</span>
+            <span style="color: #4f97d7; font-weight: bold;">if</span> <span style="color: #4f97d7;">(</span>!validPassword<span style="color: #bc6ec5;">(</span>password, user<span style="color: #2d9574;">[</span><span style="color: #2d9574;">"properties"</span><span style="color: #2d9574;">][</span><span style="color: #2d9574;">"hashed_password"</span><span style="color: #2d9574;">]</span><span style="color: #bc6ec5;">)</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span> <span style="color: #4f97d7; font-weight: bold;">return</span> cb<span style="color: #bc6ec5;">(</span><span style="color: #a45bad;">null</span>, <span style="color: #a45bad;">false</span><span style="color: #bc6ec5;">)</span>; <span style="color: #4f97d7;">}</span>
+            <span style="color: #4f97d7; font-weight: bold;">return</span> cb<span style="color: #4f97d7;">(</span><span style="color: #a45bad;">null</span>, user<span style="color: #4f97d7;">)</span>;
+        <span style="color: #b1951d;">}</span><span style="color: #67b11d;">)</span>;
+    <span style="color: #2d9574;">}</span><span style="color: #bc6ec5;">)</span><span style="color: #4f97d7;">)</span>;
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-3" class="outline-2">
+<h2 id="sec-3"><span class="section-number-2">3</span> Neo4j Configuration</h2>
+<div class="outline-text-2" id="text-3">
+<p>
+In order to get the persistent data storage that our webapp needs, we will employ a database. I've chosen a property-graph database for its unique and powerful feature-set and analytical capabilities. We'll have a really easy and useful way of visualizing the users and events at CVU.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-javascript" id="neo4j_initialization"><span style="color: #4f97d7; font-weight: bold;">const</span> <span style="color: #7590db;">neo4j</span>   = require<span style="color: #4f97d7;">(</span><span style="color: #2d9574;">'neo4j-driver'</span><span style="color: #4f97d7;">)</span>.v1;
+<span style="color: #4f97d7; font-weight: bold;">const</span> <span style="color: #7590db;">driver</span>  = neo4j.driver<span style="color: #4f97d7;">(</span><span style="color: #2d9574;">"bolt://localhost"</span>, neo4j.auth.basic<span style="color: #bc6ec5;">(</span><span style="color: #2d9574;">"neo4j"</span>, <span style="color: #2d9574;">"those scoreless irate scruffy zombie manhunts"</span><span style="color: #bc6ec5;">)</span><span style="color: #4f97d7;">)</span>;
+<span style="color: #4f97d7; font-weight: bold;">const</span> <span style="color: #7590db;">session</span> = driver.session<span style="color: #4f97d7;">()</span>;
+</pre>
+</div>
+
+<p>
+The code for this database must implement several functions:
+</p>
+<ul class="org-ul">
+<li><code>findByEmail</code>
+</li>
+<li>the user, activity, and message operations detailed in <a href="#sec-1">Interactive Shell</a>.
+</li>
+<li>Passport authenticated session persistence.
+</li>
+</ul>
+<blockquote>
+<p>
+In order to restore authentication state across HTTP requests, Passport needs to serialize users into and deserialize users out of the session.  The typical implementation of this is as simple as supplying the user ID when serializing, and querying the user record by ID from the database when deserializing.
+</p>
+</blockquote>
+<div class="org-src-container">
+
+<pre class="src src-javascript" id="neo4j_configuration"><span style="color: #4f97d7; font-weight: bold;">function</span> <span style="color: #bc6ec5; font-weight: bold;">findByEmail</span><span style="color: #4f97d7;">(</span><span style="color: #7590db;">email</span>, <span style="color: #7590db;">cb</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+    session.run<span style="color: #bc6ec5;">(</span>
+        <span style="color: #2d9574;">'MATCH (user:User {email: $email}) RETURN user'</span>, <span style="color: #2d9574;">{</span> email: email <span style="color: #2d9574;">}</span>
+    <span style="color: #bc6ec5;">)</span>.then<span style="color: #bc6ec5;">(</span>results =&gt; <span style="color: #2d9574;">{</span>
+        session.close<span style="color: #67b11d;">()</span>;
+        <span style="color: #4f97d7; font-weight: bold;">return</span> cb<span style="color: #67b11d;">(</span><span style="color: #a45bad;">null</span>, results.records<span style="color: #b1951d;">[</span><span style="color: #a45bad;">0</span><span style="color: #b1951d;">]</span>.get<span style="color: #b1951d;">(</span><span style="color: #2d9574;">'user'</span><span style="color: #b1951d;">)</span><span style="color: #67b11d;">)</span>;
+        <span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">Even if the user doesn't exist, return empty set (that's what the other code I didn't write expects).</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">if ret {</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">//     </span><span style="color: #2aa1ae; background-color: #292e34;">return cb(null, ret);</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">}</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">else {</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">//     </span><span style="color: #2aa1ae; background-color: #292e34;">return cb("User Not Found", null);</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">}</span>
+    <span style="color: #2d9574;">}</span><span style="color: #bc6ec5;">)</span>;
+<span style="color: #4f97d7;">}</span>
+
+<span style="color: #4f97d7; font-weight: bold;">function</span> <span style="color: #bc6ec5; font-weight: bold;">findById</span><span style="color: #4f97d7;">(</span><span style="color: #7590db;">id</span>, <span style="color: #7590db;">cb</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+    session.run<span style="color: #bc6ec5;">(</span>
+        <span style="color: #2d9574;">'MATCH (user) WHERE ID(user) = $identity RETURN user'</span>, <span style="color: #2d9574;">{</span> identity: id <span style="color: #2d9574;">}</span>
+    <span style="color: #bc6ec5;">)</span>.then<span style="color: #bc6ec5;">(</span>results =&gt; <span style="color: #2d9574;">{</span>
+        session.close<span style="color: #67b11d;">()</span>;
+        <span style="color: #4f97d7; font-weight: bold;">return</span> cb<span style="color: #67b11d;">(</span><span style="color: #a45bad;">null</span>, results.records<span style="color: #b1951d;">[</span><span style="color: #a45bad;">0</span><span style="color: #b1951d;">]</span>.get<span style="color: #b1951d;">(</span><span style="color: #2d9574;">'user'</span><span style="color: #b1951d;">)</span><span style="color: #67b11d;">)</span>;
+    <span style="color: #2d9574;">}</span><span style="color: #bc6ec5;">)</span>;
+<span style="color: #4f97d7;">}</span>
+
+passport.serializeUser<span style="color: #4f97d7;">(</span><span style="color: #4f97d7; font-weight: bold;">function</span><span style="color: #bc6ec5;">(</span><span style="color: #7590db;">user</span>, <span style="color: #7590db;">cb</span><span style="color: #bc6ec5;">)</span> <span style="color: #bc6ec5;">{</span>
+    cb<span style="color: #2d9574;">(</span><span style="color: #a45bad;">null</span>, user<span style="color: #67b11d;">[</span><span style="color: #2d9574;">"identity"</span><span style="color: #67b11d;">][</span><span style="color: #2d9574;">"low"</span><span style="color: #67b11d;">]</span><span style="color: #2d9574;">)</span>;
+<span style="color: #bc6ec5;">}</span><span style="color: #4f97d7;">)</span>;
+
+passport.deserializeUser<span style="color: #4f97d7;">(</span><span style="color: #4f97d7; font-weight: bold;">function</span><span style="color: #bc6ec5;">(</span><span style="color: #7590db;">id</span>, <span style="color: #7590db;">cb</span><span style="color: #bc6ec5;">)</span> <span style="color: #bc6ec5;">{</span>
+    db.users.findById<span style="color: #2d9574;">(</span>id, <span style="color: #4f97d7; font-weight: bold;">function</span> <span style="color: #67b11d;">(</span><span style="color: #7590db;">err</span>, <span style="color: #7590db;">user</span><span style="color: #67b11d;">)</span> <span style="color: #67b11d;">{</span>
+        <span style="color: #4f97d7; font-weight: bold;">if</span> <span style="color: #b1951d;">(</span>err<span style="color: #b1951d;">)</span> <span style="color: #b1951d;">{</span> <span style="color: #4f97d7; font-weight: bold;">return</span> cb<span style="color: #4f97d7;">(</span>err<span style="color: #4f97d7;">)</span>; <span style="color: #b1951d;">}</span>
+        cb<span style="color: #b1951d;">(</span><span style="color: #a45bad;">null</span>, user<span style="color: #b1951d;">)</span>;
+    <span style="color: #67b11d;">}</span><span style="color: #2d9574;">)</span>;
+<span style="color: #bc6ec5;">}</span><span style="color: #4f97d7;">)</span>;
+
+<span style="color: #2aa1ae; background-color: #292e34;">/*</span>
+<span style="color: #2aa1ae; background-color: #292e34;">  - User Operations</span>
+<span style="color: #2aa1ae; background-color: #292e34;">    - useradd</span>
+<span style="color: #2aa1ae; background-color: #292e34;">    - userdel</span>
+<span style="color: #2aa1ae; background-color: #292e34;">    - usermod</span>
+<span style="color: #2aa1ae; background-color: #292e34;">  - Activity Operations</span>
+<span style="color: #2aa1ae; background-color: #292e34;">    - activityadd</span>
+<span style="color: #2aa1ae; background-color: #292e34;">    - activitydel</span>
+<span style="color: #2aa1ae; background-color: #292e34;">    - activitymod</span>
+<span style="color: #2aa1ae; background-color: #292e34;">    - activityinvite</span>
+<span style="color: #2aa1ae; background-color: #292e34;">  - Message Operations</span>
+<span style="color: #2aa1ae; background-color: #292e34;">    - messageadd</span>
+<span style="color: #2aa1ae; background-color: #292e34;">    - messagedel</span>
+<span style="color: #2aa1ae; background-color: #292e34;">    - messagemod</span>
+<span style="color: #2aa1ae; background-color: #292e34;">*/</span>
+
+<span style="color: #4f97d7; font-weight: bold;">function</span> <span style="color: #bc6ec5; font-weight: bold;">userAdd</span><span style="color: #4f97d7;">(</span><span style="color: #7590db;">email</span>, <span style="color: #7590db;">password</span>, <span style="color: #7590db;">role</span>, <span style="color: #7590db;">cb</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+    session.run<span style="color: #bc6ec5;">(</span>
+        <span style="color: #2d9574;">'CREATE (user:User {email: $email, hashed_password: $hashed_password, role: $role}) RETURN user'</span>,
+        <span style="color: #2d9574;">{</span>email: email, hashed_password: generateHash<span style="color: #67b11d;">(</span>password<span style="color: #67b11d;">)</span>, role: role<span style="color: #2d9574;">}</span>
+    <span style="color: #bc6ec5;">)</span>.then<span style="color: #bc6ec5;">(</span>results =&gt; <span style="color: #2d9574;">{</span>
+        session.close<span style="color: #67b11d;">()</span>;
+        user = results.records<span style="color: #67b11d;">[</span><span style="color: #a45bad;">0</span><span style="color: #67b11d;">]</span>.get<span style="color: #67b11d;">(</span><span style="color: #2d9574;">'user'</span><span style="color: #67b11d;">)</span>;
+        cb<span style="color: #67b11d;">(</span><span style="color: #a45bad;">null</span>, user<span style="color: #67b11d;">)</span>;
+    <span style="color: #2d9574;">}</span><span style="color: #bc6ec5;">)</span>;
+<span style="color: #4f97d7;">}</span>
+<span style="color: #4f97d7; font-weight: bold;">function</span> <span style="color: #bc6ec5; font-weight: bold;">userDel</span><span style="color: #4f97d7;">(</span><span style="color: #7590db;">email</span>, <span style="color: #7590db;">cb</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+    session.run<span style="color: #bc6ec5;">(</span>
+        <span style="color: #2d9574;">'MATCH (user:User {email: $email}) DELETE user'</span>,
+        <span style="color: #2d9574;">{</span>email: email<span style="color: #2d9574;">}</span>
+    <span style="color: #bc6ec5;">)</span>.then<span style="color: #bc6ec5;">(</span>results =&gt; <span style="color: #2d9574;">{</span>
+        session.close<span style="color: #67b11d;">()</span>;
+        cb<span style="color: #67b11d;">(</span><span style="color: #a45bad;">null</span><span style="color: #67b11d;">)</span>;
+    <span style="color: #2d9574;">}</span><span style="color: #bc6ec5;">)</span>;
+<span style="color: #4f97d7;">}</span>
+<span style="color: #4f97d7; font-weight: bold;">function</span> <span style="color: #bc6ec5; font-weight: bold;">userMod</span><span style="color: #4f97d7;">(</span><span style="color: #7590db;">email</span>, <span style="color: #7590db;">email_new</span>, <span style="color: #7590db;">password_new</span>, <span style="color: #7590db;">role_new</span>, <span style="color: #7590db;">cb</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+    session.run<span style="color: #bc6ec5;">(</span>
+        <span style="color: #2d9574;">'MATCH (user:User {email: $email}) SET user.email = $email_new SET user.hashed_password = $hashed_password SET user.role = $role RETURN user'</span>,
+        <span style="color: #2d9574;">{</span>email: email, email_new: email_new, hashed_password: generateHash<span style="color: #67b11d;">(</span>password_new<span style="color: #67b11d;">)</span>, role: role_new<span style="color: #2d9574;">}</span>
+    <span style="color: #bc6ec5;">)</span>.then<span style="color: #bc6ec5;">(</span>results =&gt; <span style="color: #2d9574;">{</span>
+        session.close<span style="color: #67b11d;">()</span>;
+        user = results.records<span style="color: #67b11d;">[</span><span style="color: #a45bad;">0</span><span style="color: #67b11d;">]</span>.get<span style="color: #67b11d;">(</span><span style="color: #2d9574;">'user'</span><span style="color: #67b11d;">)</span>;
+        cb<span style="color: #67b11d;">(</span><span style="color: #a45bad;">null</span>, user<span style="color: #67b11d;">)</span>;
+    <span style="color: #2d9574;">}</span><span style="color: #bc6ec5;">)</span>;
+<span style="color: #4f97d7;">}</span>
+
+<span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">function activityAdd() {}</span>
+<span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">function activityDel() {}</span>
+<span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">function activityMod() {}</span>
+<span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">function activityInvite() {}</span>
+
+<span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">function messageAdd() {}</span>
+<span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">function messageDel() {}</span>
+<span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">function messageMod() {}</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-4" class="outline-2">
+<h2 id="sec-4"><span class="section-number-2">4</span> Frontend Configuration</h2>
+</div>
+
+<div id="outline-container-sec-5" class="outline-2">
+<h2 id="sec-5"><span class="section-number-2">5</span> Complete Code</h2>
+<div class="outline-text-2" id="text-5">
+<div class="org-src-container">
+
+<pre class="src src-javascript"><span style="color: #4f97d7; font-weight: bold;">const</span> <span style="color: #7590db;">program</span>  = require<span style="color: #4f97d7;">(</span><span style="color: #2d9574;">'commander'</span><span style="color: #4f97d7;">)</span>;
+<span style="color: #4f97d7; font-weight: bold;">const</span> <span style="color: #7590db;">inquirer</span> = require<span style="color: #4f97d7;">(</span><span style="color: #2d9574;">'inquirer'</span><span style="color: #4f97d7;">)</span>;
+<span style="color: #4f97d7; font-weight: bold;">const</span> <span style="color: #7590db;">passport</span> = require<span style="color: #4f97d7;">(</span><span style="color: #2d9574;">'passport'</span><span style="color: #4f97d7;">)</span>;
+<span style="color: #4f97d7; font-weight: bold;">const</span> <span style="color: #7590db;">bcrypt</span>   = require<span style="color: #4f97d7;">(</span><span style="color: #2d9574;">'bcrypt-nodejs'</span><span style="color: #4f97d7;">)</span>;
+
+<span style="color: #4f97d7; font-weight: bold;">function</span> <span style="color: #bc6ec5; font-weight: bold;">generateHash</span> <span style="color: #4f97d7;">(</span><span style="color: #7590db;">password</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+    <span style="color: #4f97d7; font-weight: bold;">return</span> bcrypt.hashSync<span style="color: #bc6ec5;">(</span>password, bcrypt.genSaltSync<span style="color: #2d9574;">(</span><span style="color: #a45bad;">12</span><span style="color: #2d9574;">)</span>, <span style="color: #a45bad;">null</span><span style="color: #bc6ec5;">)</span>;
+<span style="color: #4f97d7;">}</span>
+<span style="color: #4f97d7; font-weight: bold;">function</span> <span style="color: #bc6ec5; font-weight: bold;">validPassword</span> <span style="color: #4f97d7;">(</span><span style="color: #7590db;">password</span>, <span style="color: #7590db;">hashed_password</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+    <span style="color: #4f97d7; font-weight: bold;">return</span> bcrypt.compareSync<span style="color: #bc6ec5;">(</span>password, hashed_password<span style="color: #bc6ec5;">)</span>;
+<span style="color: #4f97d7;">}</span>;
+
+<span style="color: #4f97d7; font-weight: bold;">var</span> <span style="color: #7590db;">Strategy</span> = require<span style="color: #4f97d7;">(</span><span style="color: #2d9574;">'passport-local'</span><span style="color: #4f97d7;">)</span>.Strategy;
+
+
+<span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">Configure the local strategy for use by Passport.</span>
+<span style="color: #2aa1ae; background-color: #292e34;">//</span>
+<span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">The local strategy require a `verify` function which receives the credentials</span>
+<span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">(`username` and `password`) submitted by the user.  The function must verify</span>
+<span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">that the password is correct and then invoke `cb` with a user object, which</span>
+<span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">will be set at `req.user` in route handlers after authentication.</span>
+passport.use<span style="color: #4f97d7;">(</span><span style="color: #2d9574;">'local-login'</span>, <span style="color: #4f97d7; font-weight: bold;">new</span> <span style="color: #ce537a; font-weight: bold;">LocalStrategy</span><span style="color: #bc6ec5;">(</span><span style="color: #2d9574;">{</span>
+    <span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">by default, local strategy uses username and password, we will override with email</span>
+    usernameField : <span style="color: #2d9574;">'email'</span>,
+    passwordField : <span style="color: #2d9574;">'password'</span>,
+    passReqToCallback : <span style="color: #a45bad;">true</span> <span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">allows us to pass back the entire request to the callback</span>
+<span style="color: #2d9574;">}</span>,
+    <span style="color: #4f97d7; font-weight: bold;">function</span><span style="color: #2d9574;">(</span><span style="color: #7590db;">req</span>, <span style="color: #7590db;">email</span>, <span style="color: #7590db;">password</span>, <span style="color: #7590db;">cb</span><span style="color: #2d9574;">)</span> <span style="color: #2d9574;">{</span>
+        findByEmail<span style="color: #67b11d;">(</span>email, <span style="color: #4f97d7; font-weight: bold;">function</span><span style="color: #b1951d;">(</span><span style="color: #7590db;">err</span>, <span style="color: #7590db;">user</span><span style="color: #b1951d;">)</span> <span style="color: #b1951d;">{</span>
+            <span style="color: #4f97d7; font-weight: bold;">if</span> <span style="color: #4f97d7;">(</span>err<span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span> <span style="color: #4f97d7; font-weight: bold;">return</span> cb<span style="color: #bc6ec5;">(</span>err<span style="color: #bc6ec5;">)</span>; <span style="color: #4f97d7;">}</span>
+            <span style="color: #4f97d7; font-weight: bold;">if</span> <span style="color: #4f97d7;">(</span>!user<span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span> <span style="color: #4f97d7; font-weight: bold;">return</span> cb<span style="color: #bc6ec5;">(</span><span style="color: #a45bad;">null</span>, <span style="color: #a45bad;">false</span><span style="color: #bc6ec5;">)</span>; <span style="color: #4f97d7;">}</span>
+            <span style="color: #4f97d7; font-weight: bold;">if</span> <span style="color: #4f97d7;">(</span>!validPassword<span style="color: #bc6ec5;">(</span>password, user<span style="color: #2d9574;">[</span><span style="color: #2d9574;">"properties"</span><span style="color: #2d9574;">][</span><span style="color: #2d9574;">"hashed_password"</span><span style="color: #2d9574;">]</span><span style="color: #bc6ec5;">)</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span> <span style="color: #4f97d7; font-weight: bold;">return</span> cb<span style="color: #bc6ec5;">(</span><span style="color: #a45bad;">null</span>, <span style="color: #a45bad;">false</span><span style="color: #bc6ec5;">)</span>; <span style="color: #4f97d7;">}</span>
+            <span style="color: #4f97d7; font-weight: bold;">return</span> cb<span style="color: #4f97d7;">(</span><span style="color: #a45bad;">null</span>, user<span style="color: #4f97d7;">)</span>;
+        <span style="color: #b1951d;">}</span><span style="color: #67b11d;">)</span>;
+    <span style="color: #2d9574;">}</span><span style="color: #bc6ec5;">)</span><span style="color: #4f97d7;">)</span>;
+<span style="color: #4f97d7; font-weight: bold;">const</span> <span style="color: #7590db;">neo4j</span>   = require<span style="color: #4f97d7;">(</span><span style="color: #2d9574;">'neo4j-driver'</span><span style="color: #4f97d7;">)</span>.v1;
+<span style="color: #4f97d7; font-weight: bold;">const</span> <span style="color: #7590db;">driver</span>  = neo4j.driver<span style="color: #4f97d7;">(</span><span style="color: #2d9574;">"bolt://localhost"</span>, neo4j.auth.basic<span style="color: #bc6ec5;">(</span><span style="color: #2d9574;">"neo4j"</span>, <span style="color: #2d9574;">"those scoreless irate scruffy zombie manhunts"</span><span style="color: #bc6ec5;">)</span><span style="color: #4f97d7;">)</span>;
+<span style="color: #4f97d7; font-weight: bold;">const</span> <span style="color: #7590db;">session</span> = driver.session<span style="color: #4f97d7;">()</span>;
+<span style="color: #4f97d7; font-weight: bold;">function</span> <span style="color: #bc6ec5; font-weight: bold;">findByEmail</span><span style="color: #4f97d7;">(</span><span style="color: #7590db;">email</span>, <span style="color: #7590db;">cb</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+    session.run<span style="color: #bc6ec5;">(</span>
+        <span style="color: #2d9574;">'MATCH (user:User {email: $email}) RETURN user'</span>, <span style="color: #2d9574;">{</span> email: email <span style="color: #2d9574;">}</span>
+    <span style="color: #bc6ec5;">)</span>.then<span style="color: #bc6ec5;">(</span>results =&gt; <span style="color: #2d9574;">{</span>
+        session.close<span style="color: #67b11d;">()</span>;
+        <span style="color: #4f97d7; font-weight: bold;">return</span> cb<span style="color: #67b11d;">(</span><span style="color: #a45bad;">null</span>, results.records<span style="color: #b1951d;">[</span><span style="color: #a45bad;">0</span><span style="color: #b1951d;">]</span>.get<span style="color: #b1951d;">(</span><span style="color: #2d9574;">'user'</span><span style="color: #b1951d;">)</span><span style="color: #67b11d;">)</span>;
+        <span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">Even if the user doesn't exist, return empty set (that's what the other code I didn't write expects).</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">if ret {</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">//     </span><span style="color: #2aa1ae; background-color: #292e34;">return cb(null, ret);</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">}</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">else {</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">//     </span><span style="color: #2aa1ae; background-color: #292e34;">return cb("User Not Found", null);</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">}</span>
+    <span style="color: #2d9574;">}</span><span style="color: #bc6ec5;">)</span>;
+<span style="color: #4f97d7;">}</span>
+
+<span style="color: #4f97d7; font-weight: bold;">function</span> <span style="color: #bc6ec5; font-weight: bold;">findById</span><span style="color: #4f97d7;">(</span><span style="color: #7590db;">id</span>, <span style="color: #7590db;">cb</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+    session.run<span style="color: #bc6ec5;">(</span>
+        <span style="color: #2d9574;">'MATCH (user) WHERE ID(user) = $identity RETURN user'</span>, <span style="color: #2d9574;">{</span> identity: id <span style="color: #2d9574;">}</span>
+    <span style="color: #bc6ec5;">)</span>.then<span style="color: #bc6ec5;">(</span>results =&gt; <span style="color: #2d9574;">{</span>
+        session.close<span style="color: #67b11d;">()</span>;
+        <span style="color: #4f97d7; font-weight: bold;">return</span> cb<span style="color: #67b11d;">(</span><span style="color: #a45bad;">null</span>, results.records<span style="color: #b1951d;">[</span><span style="color: #a45bad;">0</span><span style="color: #b1951d;">]</span>.get<span style="color: #b1951d;">(</span><span style="color: #2d9574;">'user'</span><span style="color: #b1951d;">)</span><span style="color: #67b11d;">)</span>;
+    <span style="color: #2d9574;">}</span><span style="color: #bc6ec5;">)</span>;
+<span style="color: #4f97d7;">}</span>
+
+passport.serializeUser<span style="color: #4f97d7;">(</span><span style="color: #4f97d7; font-weight: bold;">function</span><span style="color: #bc6ec5;">(</span><span style="color: #7590db;">user</span>, <span style="color: #7590db;">cb</span><span style="color: #bc6ec5;">)</span> <span style="color: #bc6ec5;">{</span>
+    cb<span style="color: #2d9574;">(</span><span style="color: #a45bad;">null</span>, user<span style="color: #67b11d;">[</span><span style="color: #2d9574;">"identity"</span><span style="color: #67b11d;">][</span><span style="color: #2d9574;">"low"</span><span style="color: #67b11d;">]</span><span style="color: #2d9574;">)</span>;
+<span style="color: #bc6ec5;">}</span><span style="color: #4f97d7;">)</span>;
+
+passport.deserializeUser<span style="color: #4f97d7;">(</span><span style="color: #4f97d7; font-weight: bold;">function</span><span style="color: #bc6ec5;">(</span><span style="color: #7590db;">id</span>, <span style="color: #7590db;">cb</span><span style="color: #bc6ec5;">)</span> <span style="color: #bc6ec5;">{</span>
+    db.users.findById<span style="color: #2d9574;">(</span>id, <span style="color: #4f97d7; font-weight: bold;">function</span> <span style="color: #67b11d;">(</span><span style="color: #7590db;">err</span>, <span style="color: #7590db;">user</span><span style="color: #67b11d;">)</span> <span style="color: #67b11d;">{</span>
+        <span style="color: #4f97d7; font-weight: bold;">if</span> <span style="color: #b1951d;">(</span>err<span style="color: #b1951d;">)</span> <span style="color: #b1951d;">{</span> <span style="color: #4f97d7; font-weight: bold;">return</span> cb<span style="color: #4f97d7;">(</span>err<span style="color: #4f97d7;">)</span>; <span style="color: #b1951d;">}</span>
+        cb<span style="color: #b1951d;">(</span><span style="color: #a45bad;">null</span>, user<span style="color: #b1951d;">)</span>;
+    <span style="color: #67b11d;">}</span><span style="color: #2d9574;">)</span>;
+<span style="color: #bc6ec5;">}</span><span style="color: #4f97d7;">)</span>;
+
+<span style="color: #2aa1ae; background-color: #292e34;">/*</span>
+<span style="color: #2aa1ae; background-color: #292e34;">  - User Operations</span>
+<span style="color: #2aa1ae; background-color: #292e34;">    - useradd</span>
+<span style="color: #2aa1ae; background-color: #292e34;">    - userdel</span>
+<span style="color: #2aa1ae; background-color: #292e34;">    - usermod</span>
+<span style="color: #2aa1ae; background-color: #292e34;">  - Activity Operations</span>
+<span style="color: #2aa1ae; background-color: #292e34;">    - activityadd</span>
+<span style="color: #2aa1ae; background-color: #292e34;">    - activitydel</span>
+<span style="color: #2aa1ae; background-color: #292e34;">    - activitymod</span>
+<span style="color: #2aa1ae; background-color: #292e34;">    - activityinvite</span>
+<span style="color: #2aa1ae; background-color: #292e34;">  - Message Operations</span>
+<span style="color: #2aa1ae; background-color: #292e34;">    - messageadd</span>
+<span style="color: #2aa1ae; background-color: #292e34;">    - messagedel</span>
+<span style="color: #2aa1ae; background-color: #292e34;">    - messagemod</span>
+<span style="color: #2aa1ae; background-color: #292e34;">*/</span>
+
+<span style="color: #4f97d7; font-weight: bold;">function</span> <span style="color: #bc6ec5; font-weight: bold;">userAdd</span><span style="color: #4f97d7;">(</span><span style="color: #7590db;">email</span>, <span style="color: #7590db;">password</span>, <span style="color: #7590db;">role</span>, <span style="color: #7590db;">cb</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+    session.run<span style="color: #bc6ec5;">(</span>
+        <span style="color: #2d9574;">'CREATE (user:User {email: $email, hashed_password: $hashed_password, role: $role}) RETURN user'</span>,
+        <span style="color: #2d9574;">{</span>email: email, hashed_password: generateHash<span style="color: #67b11d;">(</span>password<span style="color: #67b11d;">)</span>, role: role<span style="color: #2d9574;">}</span>
+    <span style="color: #bc6ec5;">)</span>.then<span style="color: #bc6ec5;">(</span>results =&gt; <span style="color: #2d9574;">{</span>
+        session.close<span style="color: #67b11d;">()</span>;
+        user = results.records<span style="color: #67b11d;">[</span><span style="color: #a45bad;">0</span><span style="color: #67b11d;">]</span>.get<span style="color: #67b11d;">(</span><span style="color: #2d9574;">'user'</span><span style="color: #67b11d;">)</span>;
+        cb<span style="color: #67b11d;">(</span><span style="color: #a45bad;">null</span>, user<span style="color: #67b11d;">)</span>;
+    <span style="color: #2d9574;">}</span><span style="color: #bc6ec5;">)</span>;
+<span style="color: #4f97d7;">}</span>
+<span style="color: #4f97d7; font-weight: bold;">function</span> <span style="color: #bc6ec5; font-weight: bold;">userDel</span><span style="color: #4f97d7;">(</span><span style="color: #7590db;">email</span>, <span style="color: #7590db;">cb</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+    session.run<span style="color: #bc6ec5;">(</span>
+        <span style="color: #2d9574;">'MATCH (user:User {email: $email}) DELETE user'</span>,
+        <span style="color: #2d9574;">{</span>email: email<span style="color: #2d9574;">}</span>
+    <span style="color: #bc6ec5;">)</span>.then<span style="color: #bc6ec5;">(</span>results =&gt; <span style="color: #2d9574;">{</span>
+        session.close<span style="color: #67b11d;">()</span>;
+        cb<span style="color: #67b11d;">(</span><span style="color: #a45bad;">null</span><span style="color: #67b11d;">)</span>;
+    <span style="color: #2d9574;">}</span><span style="color: #bc6ec5;">)</span>;
+<span style="color: #4f97d7;">}</span>
+<span style="color: #4f97d7; font-weight: bold;">function</span> <span style="color: #bc6ec5; font-weight: bold;">userMod</span><span style="color: #4f97d7;">(</span><span style="color: #7590db;">email</span>, <span style="color: #7590db;">email_new</span>, <span style="color: #7590db;">password_new</span>, <span style="color: #7590db;">role_new</span>, <span style="color: #7590db;">cb</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+    session.run<span style="color: #bc6ec5;">(</span>
+        <span style="color: #2d9574;">'MATCH (user:User {email: $email}) SET user.email = $email_new SET user.hashed_password = $hashed_password SET user.role = $role RETURN user'</span>,
+        <span style="color: #2d9574;">{</span>email: email, email_new: email_new, hashed_password: generateHash<span style="color: #67b11d;">(</span>password_new<span style="color: #67b11d;">)</span>, role: role_new<span style="color: #2d9574;">}</span>
+    <span style="color: #bc6ec5;">)</span>.then<span style="color: #bc6ec5;">(</span>results =&gt; <span style="color: #2d9574;">{</span>
+        session.close<span style="color: #67b11d;">()</span>;
+        user = results.records<span style="color: #67b11d;">[</span><span style="color: #a45bad;">0</span><span style="color: #67b11d;">]</span>.get<span style="color: #67b11d;">(</span><span style="color: #2d9574;">'user'</span><span style="color: #67b11d;">)</span>;
+        cb<span style="color: #67b11d;">(</span><span style="color: #a45bad;">null</span>, user<span style="color: #67b11d;">)</span>;
+    <span style="color: #2d9574;">}</span><span style="color: #bc6ec5;">)</span>;
+<span style="color: #4f97d7;">}</span>
+
+<span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">function activityAdd() {}</span>
+<span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">function activityDel() {}</span>
+<span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">function activityMod() {}</span>
+<span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">function activityInvite() {}</span>
+
+<span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">function messageAdd() {}</span>
+<span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">function messageDel() {}</span>
+<span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">function messageMod() {}</span>
+</pre>
+</div>
+</div>
+</div>
+</div><div class="col-md-3"><nav id="table-of-contents">
+<div id="text-table-of-contents" class="bs-docs-sidebar">
+<ul class="nav">
+<li><a href="#sec-1">1. Interactive Shell</a></li>
+<li><a href="#sec-2">2. Passport Configuration</a></li>
+<li><a href="#sec-3">3. Neo4j Configuration</a></li>
+<li><a href="#sec-4">4. Frontend Configuration</a></li>
+<li><a href="#sec-5">5. Complete Code</a></li>
+</ul>
+</div>
+</nav>
+</div></div></div>
+<footer id="postamble" class="">
+<div><p class="date">Created: 2018-01-31 Wed 16:37</p>
+<p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 25.3.1 (<a href="http://orgmode.org">Org-mode</a> 9.1.6)</p>
+</div>
+</footer>
+</body>
+</html>

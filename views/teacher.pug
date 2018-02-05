@@ -1,0 +1,80 @@
+extends layout
+
+block title
+  title=title
+
+block content
+  +parallax('/res/background-edited1.jpg', 'index-banner')
+    h1.header.center.red-text.text-lighten-2 CVU Study Form
+    div.row.center
+      h5.header.col.s12.light Welcome
+    div.row.center
+      br
+      a#teacher-button.btn-large.waves-effect.waves-light.red.lighten-1(href='/create') Create an activity
+
+  div.container
+    div.section
+
+      //Icon Section
+      div.row
+        h2.center Messages
+      div.row
+        div.col.s12.m4
+          div.icon-block
+            h2.center.red-text
+              i.material-icons flash_on
+            h5.center New Message!
+            p.light=message_0
+
+        div.col.s12.m4
+          div.icon-block
+            h2.center.red-text
+              i.material-icons group
+              h5.center New Message!
+            p.light=message_1
+
+        div.col.s12.m4
+          div.icon-block
+            h2.center.red-text
+              i.material-icons settings
+              h5.center New Message!
+            p.light=message_2
+
+  div.blue-grey.darken-4
+    div.container.blue-grey.darken-4
+      div.section
+        div.row
+          h2.center.red-text Choose an Event
+        form.col.s12(method='post')
+          div.row
+            div.col.s12.m4
+              div.icon-block
+                h2.center.red-text
+                  i.material-icons flash_on
+                  h5.center.white-text=event_name_0
+                p.light.white-text=event_description_1
+                  input#event1(name="event_selector", type='radio', value=event_id_0)
+                  button.col.s12.btn.btn-large.waves-effect.red.darken-2(type="submit", name=submit-1) Register
+
+            div.col.s12.m4
+              div.icon-block
+                h2.center.red-text
+                  i.material-icons group
+                  h5.center.white-text=event_name_1
+                p.light.white-text=event_description_1
+                  input#event2(name="event_selector", type='radio', value=event_id_0)
+                  button.col.s12.btn.btn-large.waves-effect.red.darken-2(type="submit", name=submit-2) Register
+
+            div.col.s12.m4
+              div.icon-block
+                h2.center.red-text
+                  i.material-icons settings
+                  h5.center.white-text=event_name_2
+                p.light.white-text=event_description_2
+                  input#event3(name="event_selector", type='radio', value=event_id_0)
+                  button.col.s12.btn.btn-large.waves-effect.red.darken-2(type="submit", name=submit-3) Register
+
+  +parallax('/res/background-edited2.jpg', 'content-banner', 'valign-wrapper')
+    div.row.center
+    h5.header.col.s12.light Can we get a less grainy image here as well? Man, the images are always just so blurry. What's with that?
+

@@ -1,0 +1,16 @@
+include ./head-mixin.pug
+include ./header-mixin.pug
+include ./parallax-mixin.pug
+include ./footer-mixin.pug
+include ./body-scripts-mixin.pug
+
+doctype html
+html(lang='en')
+  head
+    +head
+    block title
+  body
+    +header
+    block content
+    +footer
+    +body-scripts

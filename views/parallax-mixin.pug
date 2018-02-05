@@ -1,0 +1,12 @@
+//- Declaration (parallax-mixin.pug)
+//- just saying 'class' doesn't work. It needs a unique variable name.
+mixin parallax(image, id, classarg) 
+  div.parallax-container(id=id, class=classarg)
+    div.section.no-pad-bot
+      div.container
+        if block
+          block
+        else
+          h1.header.center.red-text.text-lighten-2 No Content Provided
+    div.parallax
+      img(src=image) 

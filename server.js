@@ -300,7 +300,10 @@ app.use(bodyParser()); // get information from html forms
 app.use(express.static('public'));
 
 app.get('/', function (req, res) {
-    res.render('index', { title:"CVU Study Form" });
+    res.render('index', {
+        title:"CVU Study Form",
+        user: req.user
+    });
 });
 //Depending on how the webapp is implemented, we may not want random people creating an account.
 //This code is useful, however, so I will use it.

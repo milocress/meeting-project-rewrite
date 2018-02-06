@@ -396,7 +396,10 @@
    #+BEGIN_SRC javascript
 
      app.get('/', function (req, res) {
-         res.render('index', { title:"CVU Study Form" });
+         res.render('index', {
+             title:"CVU Study Form",
+             user: req.user
+         });
      });
    #+END_SRC
 

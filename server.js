@@ -1,9 +1,9 @@
 const program  = require('commander');
 const inquirer = require('inquirer');
 const neo4j   = require('neo4j-driver').v1;
-const graphenedbURL = process.env.GRAPHENEDB_BOLT_URL;
-const graphenedbUser = process.env.GRAPHENEDB_BOLT_USER;
-const graphenedbPass = process.env.GRAPHENEDB_BOLT_PASSWORD;
+const graphenedbURL = "bolt://localhost:7474" || process.env.GRAPHENEDB_BOLT_URL;
+const graphenedbUser = "neo4j" || process.env.GRAPHENEDB_BOLT_USER;
+const graphenedbPass = "those scoreless irate scruffy zombie manhunts" || process.env.GRAPHENEDB_BOLT_PASSWORD;
 
 const driver = neo4j.driver(graphenedbURL, neo4j.auth.basic(graphenedbUser, graphenedbPass))
 const session = driver.session();
@@ -324,8 +324,6 @@ app.post('/login', passport.authenticate('local-login', {
     failureRedirect : '/login', // redirect back to the login page if there is an error
     failureFlash : true // allow flash messages
 }));
-
-
 app.get('/profile', isLoggedIn, function(req, res) {
     res.render('index');
 });
@@ -364,5 +362,5 @@ function isTeacher(req, res, cb) {
 
     res.redirect('/')
 }
-const port = process.env.PORT;
+const port = 300 || process.env.PORT;
 app.listen(port);

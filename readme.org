@@ -562,7 +562,7 @@
 
    #+NAME: run_server
    #+BEGIN_SRC javascript
-     const port = 300 || process.env.PORT;
+     const port = 3000 || process.env.PORT;
      app.listen(port);
    #+END_SRC
 * Complete Code

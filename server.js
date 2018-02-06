@@ -362,5 +362,5 @@ function isTeacher(req, res, cb) {
 
     res.redirect('/')
 }
-const port = 300 || process.env.PORT;
+const port = 3000 || process.env.PORT;
 app.listen(port);

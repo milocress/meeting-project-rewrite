@@ -44,7 +44,11 @@
   #+NAME: neo4j_initialization
   #+BEGIN_SRC javascript
     const neo4j   = require('neo4j-driver').v1;
-    const driver  = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "those scoreless irate scruffy zombie manhunts"));
+    const graphenedbURL = process.env.GRAPHENEDB_BOLT_URL;
+    const graphenedbUser = process.env.GRAPHENEDB_BOLT_USER;
+    const graphenedbPass = process.env.GRAPHENEDB_BOLT_PASSWORD;
+
+    const driver = neo4j.driver(graphenedbURL, neo4j.auth.basic(graphenedbUser, graphenedbPass))
     const session = driver.session();
   #+END_SRC
 
@@ -83,6 +87,7 @@
   #+END_SRC
 
 ** User Operations
+   These are the operations that will interface with the database to manipulate user settings. User-oriented database functions, such as =userAdd=, =userDel=, and =getUsers=, are to be implemented here.
    #+NAME: neo4j_user_ops
    #+BEGIN_SRC javascript
      function userAdd(email, password, role, cb) {
@@ -433,8 +438,12 @@
      app.get('/create', isTeacher, function(req, res) {
          res.render('create', { title: "Creating Activity" });
      });
+   #+END_SRC
 
 
+** Create
+   #+NAME: create_page
+   #+BEGIN_SRC javascript
      app.post('/create', isTeacher, function(req, res) {
          res.redirect('/profile');
      });
@@ -482,7 +491,8 @@
 
    #+NAME: run_server
    #+BEGIN_SRC javascript
-     app.listen(3000);
+     const port = process.env.PORT;
+     app.listen(port);
    #+END_SRC
 * Complete Code
   #+BEGIN_SRC javascript :tangle server.js :noweb yes
@@ -500,6 +510,7 @@
     <<signup_page>>
     <<login_page>>
     <<profile_page>>
+    <<create_page>>
     <<404_error_page>>
     <<route_middleware_functions>>
     <<run_server>>

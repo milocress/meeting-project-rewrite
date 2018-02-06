@@ -1,7 +1,11 @@
 const program  = require('commander');
 const inquirer = require('inquirer');
 const neo4j   = require('neo4j-driver').v1;
-const driver  = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "those scoreless irate scruffy zombie manhunts"));
+const graphenedbURL = process.env.GRAPHENEDB_BOLT_URL;
+const graphenedbUser = process.env.GRAPHENEDB_BOLT_USER;
+const graphenedbPass = process.env.GRAPHENEDB_BOLT_PASSWORD;
+
+const driver = neo4j.driver(graphenedbURL, neo4j.auth.basic(graphenedbUser, graphenedbPass))
 const session = driver.session();
 function findByEmail(email, cb) {
     session.run(
@@ -323,8 +327,6 @@ app.get('/profile', isLoggedIn, function(req, res) {
 app.get('/create', isTeacher, function(req, res) {
     res.render('create', { title: "Creating Activity" });
 });
-
-
 app.post('/create', isTeacher, function(req, res) {
     res.redirect('/profile');
 });
@@ -356,4 +358,5 @@ function isTeacher(req, res, cb) {
 
     res.redirect('/')
 }
-app.listen(3000);
+const port = process.env.PORT;
+app.listen(port);

@@ -1,7 +1,7 @@
 const program  = require('commander');
 const inquirer = require('inquirer');
 const neo4j   = require('neo4j-driver').v1;
-const graphenedbURL = "bolt://localhost:7474" || process.env.GRAPHENEDB_BOLT_URL;
+const graphenedbURL = "bolt://localhost:7687" || process.env.GRAPHENEDB_BOLT_URL;
 const graphenedbUser = "neo4j" || process.env.GRAPHENEDB_BOLT_USER;
 const graphenedbPass = "those scoreless irate scruffy zombie manhunts" || process.env.GRAPHENEDB_BOLT_PASSWORD;
 

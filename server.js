@@ -30,10 +30,16 @@ function findById(id, cb) {
         return cb(null, results.records[0].get('user'));
     });
 }
-function userAdd(email, password, role, cb) {
+function userAdd(email, password, role, firstName, lastName, cb) {
     session.run(
-        'CREATE (user:User {email: $email, hashed_password: $hashed_password, role: $role}) RETURN user',
-        {email: email, hashed_password: generateHash(password), role: role}
+        'CREATE (user:User {email: $email, hashed_password: $hashed_password, role: $role, firstName: $firstName, lastName: $lastName}) RETURN user',
+        {
+            email: email,
+            hashed_password: generateHash(password),
+            role: role,
+            firstName: firstName,
+            lastName: lastName
+        }
     ).then(results => {
         session.close();
         user = results.records[0].get('user');

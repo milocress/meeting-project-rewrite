@@ -90,10 +90,16 @@
    These are the operations that will interface with the database to manipulate user settings. User-oriented database functions, such as =userAdd=, =userDel=, and =getUsers=, are to be implemented here.
    #+NAME: neo4j_user_ops
    #+BEGIN_SRC javascript
-     function userAdd(email, password, role, cb) {
+     function userAdd(email, password, role, firstName, lastName, cb) {
          session.run(
-             'CREATE (user:User {email: $email, hashed_password: $hashed_password, role: $role}) RETURN user',
-             {email: email, hashed_password: generateHash(password), role: role}
+             'CREATE (user:User {email: $email, hashed_password: $hashed_password, role: $role, firstName: $firstName, lastName: $lastName}) RETURN user',
+             {
+                 email: email,
+                 hashed_password: generateHash(password),
+                 role: role,
+                 firstName: firstName,
+                 lastName: lastName
+             }
          ).then(results => {
              session.close();
              user = results.records[0].get('user');
@@ -394,6 +400,16 @@
      });
    #+END_SRC
 
+   #+BEGIN_SRC pug :tangle ./views/index.pug
+     //- index.pug
+
+     h1 Welcome!
+     h3 This is the Root page.
+     - var firstName = user["properties"]["firstName"]
+     if firstname
+       p User Detected
+       p= firstname
+   #+END_SRC
 ** Signup
    #+NAME: signup_page
    #+BEGIN_SRC javascript
@@ -411,6 +427,42 @@
    
    #+END_SRC
 
+   #+BEGIN_SRC pug :tangle ./views/signup.pug
+     //- index.pug
+
+     h3 This is the Signup page.
+     form.col.s12(method='post')
+       div.row
+         div.col.s12
+       div.row
+         div.input-field.col.s12
+           i.material-icons.prefix email
+           input.validate(type='email', name='email' id='email')
+           label(for='email') Enter your email.
+       div.row
+         div.input-field.col.s12
+           i.material-icons.prefix lock
+           input.validate(type='password', name='password' id='password')
+           label(for='password') Enter your password.
+       div.row
+         div.input-field.col.s12
+           i.material-icons.prefix lock
+           input.validate(type='password', name='password-confirm' id='password-confirm')
+           label(for='password') Confirm your password.
+         label(style="float: right;")
+           a.pink-text(href='/login') Already have an account? Sign in.
+       div.row
+         div.input-filed.col.s12
+           p
+             input#Teacher(name="role_selector", type='radio', value="Teacher")
+             label(for='Teacher') Teacher
+             input#Student(name="role_selector", type='radio', value="Student")
+             label(for='Student') Student
+       br
+       center
+       div.row
+         button.col.s12.btn.btn-large.waves-effect.red.darken-2(type="submit") Login
+   #+END_SRC
 ** Login
    #+NAME: login_page
    #+BEGIN_SRC javascript

@@ -1,0 +1,44 @@
+extends layout
+include ./parallax-mixin.pug
+
+block title
+  title= title
+
+block content
+  +parallax('/res/background-edited1.jpg')
+    h1.header.center.red-text.text-lighten-2 Create an account
+  div.container
+    br
+    center
+      div.z-depth-1.grey.lighten-4.row(style="display: inline-block; padding: 32px 48px 0px 48px; border: 1px solid #EEE;")
+        form.col.s12(method='post')
+          div.row
+            div.col.s12
+          div.row
+            div.input-field.col.s12
+              i.material-icons.prefix email
+              input.validate(type='email', name='email' id='email')
+              label(for='email') Enter your email.
+          div.row
+            div.input-field.col.s12
+              i.material-icons.prefix lock
+              input.validate(type='password', name='password' id='password')
+              label(for='password') Enter your password.
+          div.row
+            div.input-field.col.s12
+              i.material-icons.prefix lock
+              input.validate(type='password', name='password-confirm' id='password-confirm')
+              label(for='password') Confirm your password.
+            label(style="float: right;")
+              a.pink-text(href='/login') Already have an account? Sign in.
+          div.row
+            div.input-filed.col.s12
+              p
+                input#Teacher(name="role_selector", type='radio', value="Teacher")
+                label(for='Teacher') Teacher
+                input#Student(name="role_selector", type='radio', value="Student")
+                label(for='Student') Student
+          br
+          center
+          div.row
+            button.col.s12.btn.btn-large.waves-effect.red.darken-2(type="submit") Login

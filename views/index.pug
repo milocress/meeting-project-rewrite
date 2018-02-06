@@ -1,57 +1,8 @@
-extends layout
+//- index.pug
 
-block title
-  title=title
-
-block content
-  +parallax('/res/background-edited1.jpg', 'index-banner')
-    h1.header.center.red-text.text-lighten-2 CVU Study Form
-    div.row.center
-      h5.header.col.s12.light Designed to put students and teachers together in the place they're needed most. 
-    div.row.center
-      a#teacher-button.btn-large.waves-effect.waves-light.red.lighten-1(href='/login') Log in
-
-  div.container
-    div.section
-
-      //Icon Section
-      div.row
-        div.col.s12.m4
-          div.icon-block
-            h2.center.red-text
-              i.material-icons flash_on
-            h5.center Optimizes your time
-            p.light Some stuff here about how great the CVU community is and stuff, maybe. Not really sure, honestly, I just put this here because it looks nice. But actually, we could put stuff here about the super-secret callback thing, for example. Whatever you want, just put it into this little <code class="language-markup">&lt;p&gt;</code> tag here.
-            a.btn-large.waves-effect.waves-light.red.lighten-1(href="#") Register
-
-        div.col.s12.m4
-          div.icon-block
-            h2.center.red-text
-              i.material-icons group
-            h5.center (Maybe) Featured Callback activities
-            p.light Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-            a.btn-large.waves-effect.waves-light.red.lighten-1(href="#") Register
-
-        div.col.s12.m4
-          div.icon-block
-            h2.center.red-text
-              i.material-icons settings
-            h5.center Groups of 3 are Pleasing
-            p.light Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-            a.btn-large.waves-effect.waves-light.red.lighten-1(href="#") Register
-
-  +parallax('/res/background-edited2.jpg', 'content-banner', 'valign-wrapper')
-    div.row.center
-      h5.header.col.s12.light Can we get a less grainy image here as well? Man, the images are always just so blurry. What's with that?
-
-  div.blue-grey.darken-4
-    div.container.blue-grey.darken-4
-      div.section
-        div.row
-          div.col.s12.center
-            h3
-              i.mdi-content-send.brown-text
-            h4#signup.white-text Sign Up
-            p.white-text Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-            a.btn-large.waves-effect.waves-light.red.lighten-1(href="/signup") Register
-
+h1 Welcome!
+h3 This is the Root page.
+- var firstName = user["properties"]["firstName"]
+if firstname
+  p User Detected
+  p= firstname

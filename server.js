@@ -1,9 +1,9 @@
 const program  = require('commander');
 const inquirer = require('inquirer');
 const neo4j   = require('neo4j-driver').v1;
-const graphenedbURL = "bolt://localhost:7687" || process.env.GRAPHENEDB_BOLT_URL;
-const graphenedbUser = "neo4j" || process.env.GRAPHENEDB_BOLT_USER;
-const graphenedbPass = "those scoreless irate scruffy zombie manhunts" || process.env.GRAPHENEDB_BOLT_PASSWORD;
+const graphenedbURL =  ( process.env.GRAPHENEDB_BOLT_URL ) ?  process.env.GRAPHENEDB_BOLT_URL : "bolt://localhost:7687";
+const graphenedbUser = ( process.env.GRAPHENEDB_BOLT_USER ) ? process.env.GRAPHENEDB_BOLT_USER  :"neo4j";
+const graphenedbPass = ( process.env.GRAPHENEDB_BOLT_PASSWORD ) ? process.env.GRAPHENEDB_BOLT_PASSWORD  : "those scoreless irate scruffy zombie manhunts" ;
 
 const driver = neo4j.driver(graphenedbURL, neo4j.auth.basic(graphenedbUser, graphenedbPass))
 const session = driver.session();
@@ -368,5 +368,5 @@ function isTeacher(req, res, cb) {
 
     res.redirect('/');
 }
-const port = 3000 || process.env.PORT;
+const port = (process.env.PORT) ? process.env.PORT : 3000;
 app.listen(port);

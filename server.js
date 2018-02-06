@@ -360,7 +360,7 @@ function isTeacher(req, res, cb) {
         return cb();
     }
 
-    res.redirect('/')
+    res.redirect('/');
 }
 const port = 3000 || process.env.PORT;
 app.listen(port);

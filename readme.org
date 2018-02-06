@@ -403,12 +403,13 @@
    #+BEGIN_SRC pug :tangle ./views/index.pug
      //- index.pug
 
+     title = title
      h1 Welcome!
      h3 This is the Root page.
-     - var firstName = user["properties"]["firstName"]
-     if firstname
+     if user
+       - var firstName = user["properties"]["firstName"]
        p User Detected
-       p= firstname
+       p = firstname
    #+END_SRC
 ** Signup
    #+NAME: signup_page
@@ -554,7 +555,7 @@
              return cb();
          }
 
-         res.redirect('/')
+         res.redirect('/');
      }
    #+END_SRC
 

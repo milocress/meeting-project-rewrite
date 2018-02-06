@@ -303,6 +303,7 @@ app.use(bodyParser.urlencoded({
 app.use(express.static('public'));
 
 app.get('/', function (req, res) {
+    console.log("Welcome " + req.user["properties"]["firstName"]);
     res.render('index', {
         title:"CVU Study Form",
         user: req.user

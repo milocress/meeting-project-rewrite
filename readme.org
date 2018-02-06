@@ -399,6 +399,7 @@
    #+BEGIN_SRC javascript
 
      app.get('/', function (req, res) {
+         console.log("Welcome " + req.user["properties"]["firstName"]);
          res.render('index', {
              title:"CVU Study Form",
              user: req.user

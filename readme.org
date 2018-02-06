@@ -416,7 +416,7 @@
      if user
        - var firstName = user["properties"]["firstName"]
        p User Detected
-       p= firstname 
+       p= firstName 
    #+END_SRC
 ** Signup
    #+NAME: signup_page

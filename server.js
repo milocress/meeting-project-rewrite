@@ -1,11 +1,11 @@
-const program  = require('commander');
+const commander  = require('commander');
 const inquirer = require('inquirer');
-const neo4j   = require('neo4j-driver').v1;
-const graphenedbURL =  ( process.env.GRAPHENEDB_BOLT_URL ) ?  process.env.GRAPHENEDB_BOLT_URL : "bolt://localhost:7687";
-const graphenedbUser = ( process.env.GRAPHENEDB_BOLT_USER ) ? process.env.GRAPHENEDB_BOLT_USER  :"neo4j";
-const graphenedbPass = ( process.env.GRAPHENEDB_BOLT_PASSWORD ) ? process.env.GRAPHENEDB_BOLT_PASSWORD  : "those scoreless irate scruffy zombie manhunts" ;
+const neo4j          = require('neo4j-driver').v1;
+const graphenedbURL  = ( process.env.GRAPHENEDB_BOLT_URL )      ?  process.env.GRAPHENEDB_BOLT_URL     : "bolt://localhost:7687";
+const graphenedbUser = ( process.env.GRAPHENEDB_BOLT_USER )     ? process.env.GRAPHENEDB_BOLT_USER     : "neo4j";
+const graphenedbPass = ( process.env.GRAPHENEDB_BOLT_PASSWORD ) ? process.env.GRAPHENEDB_BOLT_PASSWORD : "those scoreless irate scruffy zombie manhunts" ;
 
-const driver = neo4j.driver(graphenedbURL, neo4j.auth.basic(graphenedbUser, graphenedbPass))
+const driver  = neo4j.driver(graphenedbURL, neo4j.auth.basic(graphenedbUser, graphenedbPass))
 const session = driver.session();
 function findByEmail(email, cb) {
     session.run(
@@ -61,11 +61,10 @@ function getUsers(cb) {
     ).then(results => {
         session.close();
         users = [];
-        results.forEach(res => {
+        results.records.forEach(res => {
             users.push(res.get('users'));
-        }).then(function() {
-            return cb(null, users);
-        });
+        })
+        return cb(null, users);
     });
 }
 
@@ -75,11 +74,10 @@ function getStudents(cb) {
     ).then(results => {
         session.close();
         users = [];
-        results.forEach(res => {
+        results.records.forEach(res => {
             users.push(res.get('users'));
-        }).then(function() {
-            return cb(null, users);
-        });
+        })
+        return cb(null, users);
     });
 }
 function findActivityById(activityId, cb) {
@@ -144,9 +142,8 @@ function activityInvite(activityId, requestedAttendees, cb) {
         ).then(results => {
             session.close();
         });
-    }).then(function() {
-        return cb(null, results.records[0].get('activity'));
-    })
+    });
+    return cb(null, results.records[0].get('activity'));
 }
 
 function joinActivity(userId, activityId, cb) {
@@ -164,11 +161,10 @@ function getActivities(cb) {
     ).then(results => {
         session.close();
         activities = [];
-        results.forEach(res => {
+        results.records.forEach(res => {
             activities.push(res.get('activites'));
-        }).then(function() {
-            return cb(null, activities);
-        });
+        })
+        return cb(null, activities);
     });
 }
 
@@ -199,13 +195,23 @@ function messageDel(messageId, cb) {
 
 function getMessagesForUser(userId, cb) {
     session.run(
-        'MATCH (recipient:User)<-[message:SENT]-(sender:User) WHERE ID(recipient) = userId RETURN recipient, message, sender',
+        'MATCH (recipient:User)<-[message:SENT]-(sender:User) WHERE ID(recipient) = $userId RETURN message, sender',
         {
             userId: userId
         }
     ).then(results => {
         session.close();
-        return cb(results.records);
+        var ret = [];
+        console.log("I got here");
+        if !results.records.length { return cb(null, []); }
+        results.records.forEach((record) => {
+            console.log('Pushing...');
+            ret.push({
+                sender: record.get('sender'),
+                messages: record.get('message')
+            });
+        });
+        return cb(null, ret);
     });
 }
 const passport = require('passport');
@@ -276,7 +282,7 @@ const app = express();
 var router = express.Router();
 var express_session = require('express-session');
 
-var flash    = require('connect-flash');
+var flash = require('connect-flash');
 
 var morgan       = require('morgan');
 var cookieParser = require('cookie-parser');
@@ -331,19 +337,45 @@ app.post('/login', passport.authenticate('local-login', {
     failureRedirect : '/login', // redirect back to the login page if there is an error
     failureFlash : true // allow flash messages
 }));
-app.get('/profile', isLoggedIn, function(req, res) {
-    res.render('index');
+app.get('/profile', isLoggedIn, function (req, res) {
+    const activityPromise = new Promise((resolve, reject) => {
+        getActivities((err, activities) => {
+            if (err) { reject(err); }
+            else { resolve(activities); }
+        });
+    });
+    const messagePromise = new Promise((resolve, reject) => {
+        console.log(req.user["identity"]["low"]);
+        getMessagesForUser(req.user["identity"]["low"], (err, messages) => {
+            if (err) { reject(err); }
+            else { resolve(messages); }
+        });
+    });
+    const userPromise = new Promise((resolve, reject) => {
+        getUsers((err, users) => {
+            if (err) { reject(err); }
+            else { resolve(users); }
+        });
+    });
+    Promise.all([activityPromise, messagePromise, userPromise]).then((results) => {
+        activities = results[0];
+        messages = results[1];
+        users = results[2];
+        res.render('profile', {
+            title: "Profile",
+            user: req.user,
+            activities: activities,
+            messageRecords: messages,
+            users: users
+        });
+    })
 });
-
 app.get('/create', isTeacher, function(req, res) {
     res.render('create', { title: "Creating Activity" });
 });
 app.post('/create', isTeacher, function(req, res) {
     res.redirect('/profile');
 });
-//This code must be included last, because any route that comes after it will not be accessible, and will
-//return an error 404 message. Don't be stupid. Don't put code after here. I know I'll do it anyway.
-
 app.get('*', function(req, res, next){
     res.status(404);
 

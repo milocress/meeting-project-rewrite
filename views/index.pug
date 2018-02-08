@@ -4,6 +4,5 @@ title= title
 h1 Welcome!
 h3 This is the Root page.
 if user
-  - var firstName = user["properties"]["firstName"]
   p User Detected
-  p= firstName
+  p Welcome, #{user["properties"]["firstName"]}

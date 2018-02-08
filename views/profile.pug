@@ -1,0 +1,27 @@
+//- profile.pug
+
+title= title
+h1 Welcome!
+h2 This is the Root page.
+if user
+  p User Detected
+  p Welcome, #{user["properties"]["firstName"]}
+h2 Here are your messages:
+ul
+  each element in messageRecords
+    li Message: #{element.message}, Sender: #{element.sender}
+  else
+    li No messages :()
+h2 Here are the available activities:
+ul
+  each element in activities
+    li Activity: #{JSON.stringify(element)}
+  else
+    li No activities yet :()
+
+h2 Here are the users of the system:
+ul
+  each element in users
+    li User: #{JSON.stringify(element)}
+  else
+    li No users :()

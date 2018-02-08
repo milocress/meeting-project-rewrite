@@ -10,11 +10,11 @@
 #+CREATOR: Emacs 25.3.1 (Org mode 9.1.6)
 
 * TODO Interactive Shell
-  We want our program to be built from a shell interface. This is because the backend and the frontend should be largely separable and modular. So, I'm creating a shell interface that can take several commands:
+  We want our program to be built from a shell interface. This is because the backend and the frontend should be largely separable and modular. So, I'm creating a shell interface that can take several corg-element--set-regexps: Symbol’s function definition is void: org-link-types [2 times]ommands:
 
   - User Operations
     - =userAdd=
-    - =userDel=
+   Unhandled - =userDel=
     - =getUsers=
     - =getStudents=
 
@@ -30,30 +30,39 @@
     - =messageDel=
     - =getMessagesForUser=
 
-  These should be exposed to the interactive shell, command line arguments, and frontend via an =execute("<command>", ["<arg1>", "[arg2]", "[...]"])= function. Two libraries exist, one for each of those goals. The first, =commander=, handles command line, and the next, =inquirer=, handles interactive code.
+  These should be exposed to the interactive shell, command line arguments, and frontend via an =exec(spacemacs|use-package-add-hook org
+:pre-init
+(package-initialize)
+)ute("<command>", ["<arg1>", "[arg2]", "[...]"])= function. Two libraries exist, one for each of those goals. The first, =commander=, handles command line, and (spacemacs|use-package-add-hook org
+:pre-init
+(package-initialize)
+)the next, =inquirer=, handles interactive code.
 
   #+NAME: interactive_shell_initialization
   #+BEGIN_SRC javascript
-    const program  = require('commander');
+    const commander  = require('commander');
     const inquirer = require('inquirer');
   #+END_SRC
 
 * Neo4j Configuration
-  In order to get the persistent data storage that our webapp needs, we will employ a database. I've chosen a property-graph database for its unique and powerful feature-set and analytical capabilities. We'll have a really easy and useful way of visualizing the users and events at CVU.
+  In order to get the persistent data storage that our webapp needs, we will employ a database. I've chosen a property-graph database for its unique and powerful feature-set and analytical capabilities. We'll have a really easy and useful way of visualizing thFor the second block that is being included, you must not include :tangle yes or it will be included twice in the output (once inserted into the first block, as desired and the second as a block in its own right). You can use :noweb or :noweb yes for the second block, but it neither helps nor hinders, so I've also removed it. (:noweb-ref initialize-the-game-board could serve as an alternative to the #+NAME: line.)
+
+e users and events at CVU.
 
   #+NAME: neo4j_initialization
   #+BEGIN_SRC javascript
-    const neo4j   = require('neo4j-driver').v1;
-    const graphenedbURL =  ( process.env.GRAPHENEDB_BOLT_URL ) ?  process.env.GRAPHENEDB_BOLT_URL : "bolt://localhost:7687";
-    const graphenedbUser = ( process.env.GRAPHENEDB_BOLT_USER ) ? process.env.GRAPHENEDB_BOLT_USER  :"neo4j";
-    const graphenedbPass = ( process.env.GRAPHENEDB_BOLT_PASSWORD ) ? process.env.GRAPHENEDB_BOLT_PASSWORD  : "those scoreless irate scruffy zombie manhunts" ;
+    const neo4j          = require('neo4j-driver').v1;
+    const graphenedbURL  = ( process.env.GRAPHENEDB_BOLT_URL )      ?  process.env.GRAPHENEDB_BOLT_URL     : "bolt://localhost:7687";
+    const graphenedbUser = ( process.env.GRAPHENEDB_BOLT_USER )     ? process.env.GRAPHENEDB_BOLT_USER     : "neo4j";
+    const graphenedbPass = ( process.env.GRAPHENEDB_BOLT_PASSWORD ) ? process.env.GRAPHENEDB_BOLT_PASSWORD : "those scoreless irate scruffy zombie manhunts" ;
 
-    const driver = neo4j.driver(graphenedbURL, neo4j.auth.basic(graphenedbUser, graphenedbPass))
+    const driver  = neo4j.driver(graphenedbURL, neo4j.auth.basic(graphenedbUser, graphenedbPass))
     const session = driver.session();
   #+END_SRC
 
   The code for this database must implement several functions:
-  - =findByEmail=
+  - =findByEmail()=
+  - =findById()=
   - the user, activity, and message operations detailed in [[Interactive Shell]].
   - Passport authenticated session persistence.
   #+BEGIN_QUOTE
@@ -68,7 +77,9 @@
             session.close();
             if (!results.records[0]) {
                 return cb(null, null);
-            }
+            For the second block that is being included, you must not include :tangle yes or it will be included twice in the output (once inserted into the first block, as desired and the second as a block in its own right). You can use :noweb or :noweb yes for the second block, but it neither helps nor hinders, so I've also removed it. (:noweb-ref initialize-the-game-board could serve as an alternative to the #+NAME: line.)
+
+}
             return cb(null, results.records[0].get('user'));
         });
     }
@@ -120,12 +131,12 @@
              'MATCH (users:User) RETURN users'
          ).then(results => {
              session.close();
+             if (!results.records.length) { return cb(null, []); }
              users = [];
-             results.forEach(res => {
+             results.records.forEach(res => {
                  users.push(res.get('users'));
-             }).then(function() {
-                 return cb(null, users);
-             });
+             })
+             return cb(null, users);
          });
      }
 
@@ -135,11 +146,10 @@
          ).then(results => {
              session.close();
              users = [];
-             results.forEach(res => {
+             results.records.forEach(res => {
                  users.push(res.get('users'));
-             }).then(function() {
-                 return cb(null, users);
-             });
+             })
+             return cb(null, users);
          });
      }
    #+END_SRC
@@ -209,9 +219,8 @@
              ).then(results => {
                  session.close();
              });
-         }).then(function() {
-             return cb(null, results.records[0].get('activity'));
-         })
+         });
+         return cb(null, results.records[0].get('activity'));
      }
 
      function joinActivity(userId, activityId, cb) {
@@ -229,17 +238,16 @@
          ).then(results => {
              session.close();
              activities = [];
-             results.forEach(res => {
+             results.records.forEach(res => {
                  activities.push(res.get('activites'));
-             }).then(function() {
-                 return cb(null, activities);
-             });
+             })
+             return cb(null, activities);
          });
      }
 
    #+END_SRC
 
-** Message Operations
+** TODO Message Operations
 
    #+NAME: neo4j_message_ops
    #+BEGIN_SRC javascript 
@@ -270,13 +278,23 @@
 
      function getMessagesForUser(userId, cb) {
          session.run(
-             'MATCH (recipient:User)<-[message:SENT]-(sender:User) WHERE ID(recipient) = userId RETURN recipient, message, sender',
+             'MATCH (recipient:User)<-[message:SENT]-(sender:User) WHERE ID(recipient) = $userId RETURN message, sender',
              {
                  userId: userId
              }
          ).then(results => {
              session.close();
-             return cb(results.records);
+             var ret = [];
+             console.log("I got here");
+             if (!results.records.length) { return cb(null, []); }
+             results.records.forEach((record) => {
+                 console.log('Pushing...');
+                 ret.push({
+                     sender: record.get('sender'),
+                     messages: record.get('message')
+                 });
+             });
+             return cb(null, ret);
          });
      }
    #+END_SRC
@@ -367,7 +385,7 @@
     var router = express.Router();
     var express_session = require('express-session');
 
-    var flash    = require('connect-flash');
+    var flash = require('connect-flash');
 
     var morgan       = require('morgan');
     var cookieParser = require('cookie-parser');
@@ -414,9 +432,8 @@
      h1 Welcome!
      h3 This is the Root page.
      if user
-       - var firstName = user["properties"]["firstName"]
        p User Detected
-       p= firstName 
+       p Welcome, #{user["properties"]["firstName"]}
    #+END_SRC
 ** Signup
    #+NAME: signup_page
@@ -510,30 +527,85 @@
 ** Profile
    #+NAME: profile_page
    #+BEGIN_SRC javascript
-     app.get('/profile', isLoggedIn, function(req, res) {
-         res.render('index');
-     });
-
-     app.get('/create', isTeacher, function(req, res) {
-         res.render('create', { title: "Creating Activity" });
+     app.get('/profile', isLoggedIn, function (req, res) {
+         const activityPromise = new Promise((resolve, reject) => {
+             getActivities((err, activities) => {
+                 if (err) { reject(err); }
+                 else { resolve(activities); }
+             });
+         });
+         const messagePromise = new Promise((resolve, reject) => {
+             console.log(req.user["identity"]["low"]);
+             getMessagesForUser(req.user["identity"]["low"], (err, messages) => {
+                 if (err) { reject(err); }
+                 else { resolve(messages); }
+             });
+         });
+         const userPromise = new Promise((resolve, reject) => {
+             getUsers((err, users) => {
+                 if (err) { reject(err); }
+                 else { resolve(users); }
+             });
+         });
+         Promise.all([activityPromise, messagePromise, userPromise]).then((results) => {
+             activities = results[0];
+             messages = results[1];
+             users = results[2];
+             res.render('profile', {
+                 title: "Profile",
+                 user: req.user,
+                 activities: activities,
+                 messageRecords: messages,
+                 users: users
+             });
+         })
      });
    #+END_SRC
 
+   #+BEGIN_SRC pug :tangle ./views/profile.pug
+     //- profile.pug
 
-** Create
+     title= title
+     h1 Welcome!
+     h2 This is the Root page.
+     if user
+       p User Detected
+       p Welcome, #{user["properties"]["firstName"]}
+     h2 Here are your messages:
+     ul
+       each element in messageRecords
+         li Message: #{element.message}, Sender: #{element.sender}
+       else
+         li No messages :()
+     h2 Here are the available activities:
+     ul
+       each element in activities
+         li Activity: #{JSON.stringify(element)}
+       else
+         li No activities yet :()
+
+     h2 Here are the users of the system:
+     ul
+       each element in users
+         li User: #{JSON.stringify(element)}
+       else
+         li No users :()
+   +END_SRC
+** TODO Create
    #+NAME: create_page
    #+BEGIN_SRC javascript
+     app.get('/create', isTeacher, function(req, res) {
+         res.render('create', { title: "Creating Activity" });
+     });
      app.post('/create', isTeacher, function(req, res) {
          res.redirect('/profile');
      });
    #+END_SRC
 
 ** 404 Error page
+     This code must be included last, because any route that comes after it will not be accessible, and will return an error 404 message. Don't be stupid. Don't put routing code after here. 
    #+NAME: 404_error_page
    #+BEGIN_SRC javascript
-     //This code must be included last, because any route that comes after it will not be accessible, and will
-     //return an error 404 message. Don't be stupid. Don't put code after here. I know I'll do it anyway.
-
      app.get('*', function(req, res, next){
          res.status(404);
 
@@ -567,14 +639,13 @@
    #+END_SRC
 
 ** Run Server
-
    #+NAME: run_server
    #+BEGIN_SRC javascript
      const port = (process.env.PORT) ? process.env.PORT : 3000;
      app.listen(port);
    #+END_SRC
 * Complete Code
-  #+BEGIN_SRC javascript :tangle server.js :noweb yes
+  #+BEGIN_SRC javascript :tangle server.js :nowebyes
     <<interactive_shell_initialization>>
     <<neo4j_initialization>>
     <<neo4j_configuration>>

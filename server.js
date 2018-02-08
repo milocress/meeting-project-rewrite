@@ -14,7 +14,8 @@ function findByEmail(email, cb) {
         session.close();
         if (!results.records[0]) {
             return cb(null, null);
-        }
+
+}
         return cb(null, results.records[0].get('user'));
     });
 }
@@ -60,6 +61,7 @@ function getUsers(cb) {
         'MATCH (users:User) RETURN users'
     ).then(results => {
         session.close();
+        if (!results.records.length) { return cb(null, []); }
         users = [];
         results.records.forEach(res => {
             users.push(res.get('users'));
@@ -73,6 +75,7 @@ function getStudents(cb) {
         'MATCH (users:User) WHERE users.role = "Student" RETURN users'
     ).then(results => {
         session.close();
+        if (!results.records.length) { return cb(null, []); }
         users = [];
         results.records.forEach(res => {
             users.push(res.get('users'));
@@ -160,6 +163,7 @@ function getActivities(cb) {
         'MATCH (activities:Activity) RETURN activities'
     ).then(results => {
         session.close();
+        if (!results.records.length) { return cb(null, []); }
         activities = [];
         results.records.forEach(res => {
             activities.push(res.get('activites'));
@@ -203,7 +207,7 @@ function getMessagesForUser(userId, cb) {
         session.close();
         var ret = [];
         console.log("I got here");
-        if !results.records.length { return cb(null, []); }
+        if (!results.records.length) { return cb(null, []); }
         results.records.forEach((record) => {
             console.log('Pushing...');
             ret.push({
@@ -300,7 +304,7 @@ app.use(express_session({
 app.use(passport.initialize());
 app.use(passport.session()); // persistent login sessions
 
-app.use(morgan('dev')); // log every request to the console
+//app.use(morgan('dev')); // log every request to the console
 app.use(cookieParser()); // read cookies (needed for auth)
 app.use(bodyParser.json()); // get information from html forms
 app.use(bodyParser.urlencoded({

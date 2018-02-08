@@ -30,14 +30,6 @@
     - =messageDel=
     - =getMessagesForUser=
 
-  These should be exposed to the interactive shell, command line arguments, and frontend via an =exec(spacemacs|use-package-add-hook org
-:pre-init
-(package-initialize)
-)ute("<command>", ["<arg1>", "[arg2]", "[...]"])= function. Two libraries exist, one for each of those goals. The first, =commander=, handles command line, and (spacemacs|use-package-add-hook org
-:pre-init
-(package-initialize)
-)the next, =inquirer=, handles interactive code.
-
   #+NAME: interactive_shell_initialization
   #+BEGIN_SRC javascript
     const commander  = require('commander');
@@ -45,9 +37,7 @@
   #+END_SRC
 
 * Neo4j Configuration
-  In order to get the persistent data storage that our webapp needs, we will employ a database. I've chosen a property-graph database for its unique and powerful feature-set and analytical capabilities. We'll have a really easy and useful way of visualizing thFor the second block that is being included, you must not include :tangle yes or it will be included twice in the output (once inserted into the first block, as desired and the second as a block in its own right). You can use :noweb or :noweb yes for the second block, but it neither helps nor hinders, so I've also removed it. (:noweb-ref initialize-the-game-board could serve as an alternative to the #+NAME: line.)
-
-e users and events at CVU.
+  In order to get the persistent data storage that our webapp needs, we will employ a database. I've chosen a property-graph database for its unique and powerful feature-set and analytical capabilities. We'll have a really easy and useful way of visualizing the users and events at CVU.
 
   #+NAME: neo4j_initialization
   #+BEGIN_SRC javascript
@@ -77,9 +67,8 @@ e users and events at CVU.
             session.close();
             if (!results.records[0]) {
                 return cb(null, null);
-            For the second block that is being included, you must not include :tangle yes or it will be included twice in the output (once inserted into the first block, as desired and the second as a block in its own right). You can use :noweb or :noweb yes for the second block, but it neither helps nor hinders, so I've also removed it. (:noweb-ref initialize-the-game-board could serve as an alternative to the #+NAME: line.)
 
-}
+    }
             return cb(null, results.records[0].get('user'));
         });
     }
@@ -145,6 +134,7 @@ e users and events at CVU.
              'MATCH (users:User) WHERE users.role = "Student" RETURN users'
          ).then(results => {
              session.close();
+             if (!results.records.length) { return cb(null, []); }
              users = [];
              results.records.forEach(res => {
                  users.push(res.get('users'));
@@ -237,6 +227,7 @@ e users and events at CVU.
              'MATCH (activities:Activity) RETURN activities'
          ).then(results => {
              session.close();
+             if (!results.records.length) { return cb(null, []); }
              activities = [];
              results.records.forEach(res => {
                  activities.push(res.get('activites'));
@@ -247,7 +238,7 @@ e users and events at CVU.
 
    #+END_SRC
 
-** TODO Message Operations
+** Message Operations
 
    #+NAME: neo4j_message_ops
    #+BEGIN_SRC javascript 
@@ -403,7 +394,7 @@ e users and events at CVU.
     app.use(passport.initialize());
     app.use(passport.session()); // persistent login sessions
 
-    app.use(morgan('dev')); // log every request to the console
+    //app.use(morgan('dev')); // log every request to the console
     app.use(cookieParser()); // read cookies (needed for auth)
     app.use(bodyParser.json()); // get information from html forms
     app.use(bodyParser.urlencoded({
@@ -590,8 +581,8 @@ e users and events at CVU.
          li User: #{JSON.stringify(element)}
        else
          li No users :()
-   +END_SRC
-** TODO Create
+   #+END_SRC
+** Create
    #+NAME: create_page
    #+BEGIN_SRC javascript
      app.get('/create', isTeacher, function(req, res) {
@@ -645,7 +636,7 @@ e users and events at CVU.
      app.listen(port);
    #+END_SRC
 * Complete Code
-  #+BEGIN_SRC javascript :tangle server.js :nowebyes
+  #+BEGIN_SRC javascript :tangle server.js :noweb yes
     <<interactive_shell_initialization>>
     <<neo4j_initialization>>
     <<neo4j_configuration>>
@@ -665,3 +656,5 @@ e users and events at CVU.
     <<route_middleware_functions>>
     <<run_server>>
   #+END_SRC
+
+  

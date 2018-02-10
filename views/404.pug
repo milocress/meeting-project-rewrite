@@ -1,0 +1,19 @@
+//- 404.pug
+extends layout
+
+block title
+  title= title
+
+block content
+  +parallax('/res/background-edited1.jpg', 'index-banner')
+    h1.header.center.red-text.text-lighten-2 That's an error! Whoops!
+    div.row.center
+      h5.header.col.s12.light The page you requested, #{url}, does not exist. Try re-entering it, or stick around and we'll show you a cat video.
+
+  div.blue-grey.darken-4
+    div.container
+      div.section
+        div.row
+          div.col.s12.center
+            h4.white-text You know you want to.
+            <iframe width="560" height="315" src="https://www.youtube.com/embed/m9VO7X_q9nw?rel=0" frameborder="0" allowfullscreen></iframe>

@@ -1,8 +1,41 @@
 //- index.pug
+extends layout.pug
+block title
+  title= title
 
-title= title
-h1 Welcome!
-h3 This is the Root page.
-if user
-  p User Detected
-  p Welcome, #{user["properties"]["firstName"]}
+block content
+  +parallax('/res/background-edited1.jpg', 'index-banner')
+    h1.header.center.red-text.text-lighten-2 CVU Study Form
+    div.row.center
+      h5.header.col.s12.light Designed to put students and teachers together in the place they're needed most. 
+    div.row.center
+      a#teacher-button.btn-large.waves-effect.waves-light.red.lighten-1(href='/login') Log in
+
+  div.container
+    div.section
+
+      //Icon Section
+      div.row
+        div.col.s12.m4
+          div.icon-block
+            h2.center.red-text
+              i.material-icons flash_on
+            h5.center Log In
+            p.light Log In
+            a.btn-large.waves-effect.waves-light.red.lighten-1(href="/login") Login
+
+        div.col.s12.m4
+          div.icon-block
+            h2.center.red-text
+              i.material-icons group
+            h5.center Create an Account
+            p.light Create an Account
+            a.btn-large.waves-effect.waves-light.red.lighten-1(href="/signup") Signup
+
+        div.col.s12.m4
+          div.icon-block
+            h2.center.red-text
+              i.material-icons settings
+            h5.center Create an Activity
+            p.light Create an Activity
+            a.btn-large.waves-effect.waves-light.red.lighten-1(href="/create") Create

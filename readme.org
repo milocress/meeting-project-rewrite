@@ -38,52 +38,53 @@
 
 * Neo4j Configuration
   In order to get the persistent data storage that our webapp needs, we will employ a database. I've chosen a property-graph database for its unique and powerful feature-set and analytical capabilities. We'll have a really easy and useful way of visualizing the users and events at CVU.
+** Initialization
 
-  #+NAME: neo4j_initialization
-  #+BEGIN_SRC javascript
-    const neo4j          = require('neo4j-driver').v1;
-    const graphenedbURL  = ( process.env.GRAPHENEDB_BOLT_URL )      ?  process.env.GRAPHENEDB_BOLT_URL     : "bolt://localhost:7687";
-    const graphenedbUser = ( process.env.GRAPHENEDB_BOLT_USER )     ? process.env.GRAPHENEDB_BOLT_USER     : "neo4j";
-    const graphenedbPass = ( process.env.GRAPHENEDB_BOLT_PASSWORD ) ? process.env.GRAPHENEDB_BOLT_PASSWORD : "those scoreless irate scruffy zombie manhunts" ;
+   #+NAME: neo4j_initialization
+   #+BEGIN_SRC javascript
+     const neo4j          = require('neo4j-driver').v1;
+     const graphenedbURL  = ( process.env.GRAPHENEDB_BOLT_URL )      ?  process.env.GRAPHENEDB_BOLT_URL     : "bolt://localhost:7687";
+     const graphenedbUser = ( process.env.GRAPHENEDB_BOLT_USER )     ? process.env.GRAPHENEDB_BOLT_USER     : "neo4j";
+     const graphenedbPass = ( process.env.GRAPHENEDB_BOLT_PASSWORD ) ? process.env.GRAPHENEDB_BOLT_PASSWORD : "those scoreless irate scruffy zombie manhunts" ;
+ 
+     const driver  = neo4j.driver(graphenedbURL, neo4j.auth.basic(graphenedbUser, graphenedbPass))
+     const session = driver.session();
+   #+END_SRC
 
-    const driver  = neo4j.driver(graphenedbURL, neo4j.auth.basic(graphenedbUser, graphenedbPass))
-    const session = driver.session();
-  #+END_SRC
+   The code for this database must implement several functions:
+   - =findByEmail()=
+   - =findById()=
+   - the user, activity, and message operations detailed in [[Interactive Shell]].
+   - Passport authenticated session persistence.
+   #+BEGIN_QUOTE
+   In order to restore authentication state across HTTP requests, Passport needs to serialize users into and deserialize users out of the session.  The typical implementation of this is as simple as supplying the user ID when serializing, and querying the user record by ID from the database when deserializing.
+   #+END_QUOTE
+   #+NAME: neo4j_configuration
+   #+BEGIN_SRC javascript
+     function findByEmail(email, cb) {
+         session.run(
+             'MATCH (user:User {email: $email}) RETURN user', { email: email }
+         ).then(results => {
+             session.close();
+             if (!results.records[0]) {
+                 return cb(null, null);
 
-  The code for this database must implement several functions:
-  - =findByEmail()=
-  - =findById()=
-  - the user, activity, and message operations detailed in [[Interactive Shell]].
-  - Passport authenticated session persistence.
-  #+BEGIN_QUOTE
-  In order to restore authentication state across HTTP requests, Passport needs to serialize users into and deserialize users out of the session.  The typical implementation of this is as simple as supplying the user ID when serializing, and querying the user record by ID from the database when deserializing.
-  #+END_QUOTE
-  #+NAME: neo4j_configuration
-  #+BEGIN_SRC javascript
-    function findByEmail(email, cb) {
-        session.run(
-            'MATCH (user:User {email: $email}) RETURN user', { email: email }
-        ).then(results => {
-            session.close();
-            if (!results.records[0]) {
-                return cb(null, null);
+     }
+             return cb(null, results.records[0].get('user'));
+         });
+     }
 
-    }
-            return cb(null, results.records[0].get('user'));
-        });
-    }
-
-    function findById(id, cb) {
-        session.run(
-            'MATCH (user) WHERE ID(user) = $identity RETURN user', { identity: id }
-        ).then(results => {
-            session.close();
-            if (!results.records[0]) {
-                return (null, null)
-            }
-            return cb(null, results.records[0].get('user'));
-        });
-    }
+     function findById(id, cb) {
+         session.run(
+             'MATCH (user) WHERE ID(user) = $identity RETURN user', { identity: neo4j.int(id) }
+         ).then(results => {
+             session.close();
+             if (!results.records[0]) {
+                 return (null, null)
+             }
+             return cb(null, results.records[0].get('user'));
+         });
+     }
   #+END_SRC
 
 ** User Operations
@@ -182,8 +183,8 @@
          ).then(results => {
              session.close();
              activityId = results.records[0].get('activity')["identity"]["low"];
-             activityInvite(activityId, requestedAttendees, function(err, activity) {
-                 return cb(null, activity);
+             activityInvite(activityId, requestedAttendees, () => {
+                 return cb(null, results.records[0].get('activity'));
              })
          });
      }
@@ -201,7 +202,7 @@
      function activityInvite(activityId, requestedAttendees, cb) {
          requestedAttendees.forEach(user_email => {
              session.run(
-                 'MATCH (activity:Activity),(student:User) WHERE ID(activity) = $activityId AND student.email = $email CREATE (student)-[rel:INVITED_TO]->(activity) rel.time = TIMESTAMP() RETURN student',
+                 'MATCH (activity:Activity),(student:User) WHERE ID(activity) = $activityId AND student.email = $email CREATE (student)-[rel:INVITED_TO]->(activity) SET rel.time = TIMESTAMP()',
                  {
                      activityId: activityId,
                      email: user_email
@@ -210,7 +211,7 @@
                  session.close();
              });
          });
-         return cb(null, results.records[0].get('activity'));
+         return cb();
      }
 
      function joinActivity(userId, activityId, cb) {
@@ -230,7 +231,7 @@
              if (!results.records.length) { return cb(null, []); }
              activities = [];
              results.records.forEach(res => {
-                 activities.push(res.get('activites'));
+                 activities.push(res.get('activities'));
              })
              return cb(null, activities);
          });
@@ -276,7 +277,6 @@
          ).then(results => {
              session.close();
              var ret = [];
-             console.log("I got here");
              if (!results.records.length) { return cb(null, []); }
              results.records.forEach((record) => {
                  console.log('Pushing...');
@@ -291,7 +291,7 @@
    #+END_SRC
 
 * Passport Configuration
-
+** Initialization
   #+NAME: passport_initialization
   #+BEGIN_SRC javascript
     const passport = require('passport');
@@ -343,7 +343,7 @@
          function(req, email, password, cb) {
              findByEmail(email, function (err, user) {
                  if (!user) {
-                     userAdd(email, password, req.body.role_selector, function(err, new_user) {
+                     userAdd(email, password, req.body.role_selector, req.body.firstName, req.body.lastName, function(err, new_user) {
                          cb(null, new_user);
                      });
                  }
@@ -369,6 +369,7 @@
     });
    #+END_SRC
 * Frontend Configuration
+** Initialization
   #+NAME: frontend_initialization
   #+BEGIN_SRC javascript
     const express = require('express');
@@ -403,12 +404,118 @@
     app.use(express.static('public'));
   #+END_SRC
 
+** Layout Template
+   #+BEGIN_SRC pug :tangle ./views/layout.pug
+     include ./head-mixin.pug
+     include ./header-mixin.pug
+     include ./parallax-mixin.pug
+     include ./footer-mixin.pug
+     include ./body-scripts-mixin.pug
+
+     doctype html
+     html(lang='en')
+       head
+         +head
+         block title
+       body
+         +header
+         block content
+         +footer
+         +body-scripts
+   #+END_SRC
+** Head Mixin
+  #+BEGIN_SRC pug :tangle ./views/head-mixin.pug
+    //- Declaration (head-mixin.pug)
+    mixin head
+      head
+        link(rel='shortcut icon', href='/res/favicon.png')
+
+        meta(http-equiv="Content-Type", content="text/html; charset=UTF-8")
+        meta(name="viewport", content="width=device-width, initial-scale=1")
+
+        //Google Sign-In Form
+        //meta(name="google-signin-scope", content="profile email")
+        //meta(name="google-signin-client_id", content="YOUR_CLIENT_ID.apps.googleusercontent.com")
+        //script(src="https://apis.google.com/js/platform.js", async, defer
+
+        //CSS
+        link(href="https://fonts.googleapis.com/icon?family=Material+Icons", rel="stylesheet")
+        link(href="css/materialize.css", type="text/css", rel="stylesheet", media="screen,projection")
+        link(href="css/style.css", type="text/css", rel="stylesheet", media="screen,projection")
+
+        //Prism CSS
+        link(href="themes/prism.css" rel="stylesheet") 
+  #+END_SRC 
+
+** Header Mixin
+  #+BEGIN_SRC pug :tangle ./views/header-mixin.pug
+    //- Declaration (header-mixin.pug)
+    mixin header (title)
+      nav(class='red darken-2', role='navigation')
+        div.nav-wrapper.container
+          a#logo-container.brand-logo(href='#') CVUHS 
+          ul.right.hide-on-med-and-down
+            li
+              a(href='/profile') Teachers
+            li
+              a(href='/profile') Students
+
+          ul#nav-mobile.side-nav
+            li
+              a(href='#Teachers') Teachers
+            li
+              a(href='#Students') Students
+          a.button-collapse(href="#", data-activates="nav-mobile")
+            i.material-icons menu
+  #+END_SRC 
+
+** Parallax Mixin
+  #+BEGIN_SRC pug :tangle ./views/parallax-mixin.pug
+    //- Declaration (parallax-mixin.pug)
+    //- just saying 'class' doesn't work. It needs a unique variable name.
+    mixin parallax(image, id, classarg)
+      div.parallax-container(id=id, class=classarg)
+        div.section.no-pad-bot
+          div.container
+            if block
+              block
+            else
+              h1.header.center.red-text.text-lighten-2 No Content Provided
+        div.parallax
+          img(src=image)
+  #+END_SRC 
+
+** Footer Mixin
+  #+BEGIN_SRC pug :tangle ./views/footer-mixin.pug
+    //- Declaration (footer-mixin.pug)
+    mixin footer
+      footer.page-footer.red.darken-2
+        div.container
+          div.row
+            div.col.s12
+              h5.white-text About CVU
+              p.grey-text.text-lighten-4 Champlain Valley Union High School is a community dedicated to facilitating and empowering students in their education. It's a fun place to go to school for sure :)
+              a#download-button.btn.waves-effect.waves-light.teal.lighten-1(href='https://www.cvsdvt.org/Domain/12') Learn More
+
+        div.footer-copyright
+          div.container.
+            &copy;CVUHS #{(new Date()).getFullYear()}. Powered by node.js, materialize.css, and lots of caffeine.
+  #+END_SRC 
+
+** Body Scripts Mixin
+  #+BEGIN_SRC pug :tangle ./views/body-scripts-mixin.pug
+    //- Declaration (body-scripts-mixin.pug)
+    mixin body-scripts
+      script(src="https://code.jquery.com/jquery-2.1.1.min.js")
+      script(src='js/materialize.js')
+      script(src='js/init.js')
+      script(src="js/prism.js")
+  #+END_SRC 
 ** Root
    #+NAME: root_page
    #+BEGIN_SRC javascript
 
      app.get('/', function (req, res) {
-         if (req.user) { console.log("Welcome " + req.user["properties"]["firstName"]); }
          res.render('index', {
              title:"CVU Study Form",
              user: req.user
@@ -418,13 +525,47 @@
 
    #+BEGIN_SRC pug :tangle ./views/index.pug
      //- index.pug
+     extends layout.pug
+     block title
+       title= title
 
-     title= title
-     h1 Welcome!
-     h3 This is the Root page.
-     if user
-       p User Detected
-       p Welcome, #{user["properties"]["firstName"]}
+     block content
+       +parallax('/res/background-edited1.jpg', 'index-banner')
+         h1.header.center.red-text.text-lighten-2 CVU Study Form
+         div.row.center
+           h5.header.col.s12.light Designed to put students and teachers together in the place they're needed most. 
+         div.row.center
+           a#teacher-button.btn-large.waves-effect.waves-light.red.lighten-1(href='/login') Log in
+
+       div.container
+         div.section
+
+           //Icon Section
+           div.row
+             div.col.s12.m4
+               div.icon-block
+                 h2.center.red-text
+                   i.material-icons flash_on
+                 h5.center Log In
+                 p.light Log In
+                 a.btn-large.waves-effect.waves-light.red.lighten-1(href="/login") Login
+
+             div.col.s12.m4
+               div.icon-block
+                 h2.center.red-text
+                   i.material-icons group
+                 h5.center Create an Account
+                 p.light Create an Account
+                 a.btn-large.waves-effect.waves-light.red.lighten-1(href="/signup") Signup
+
+             div.col.s12.m4
+               div.icon-block
+                 h2.center.red-text
+                   i.material-icons settings
+                 h5.center Create an Activity
+                 p.light Create an Activity
+                 a.btn-large.waves-effect.waves-light.red.lighten-1(href="/create") Create
+
    #+END_SRC
 ** Signup
    #+NAME: signup_page
@@ -445,39 +586,52 @@
 
    #+BEGIN_SRC pug :tangle ./views/signup.pug
      //- index.pug
+     extends layout.pug
 
-     h3 This is the Signup page.
-     form.col.s12(method='post')
-       div.row
-         div.col.s12
-       div.row
-         div.input-field.col.s12
-           i.material-icons.prefix email
-           input.validate(type='email', name='email' id='email')
-           label(for='email') Enter your email.
-       div.row
-         div.input-field.col.s12
-           i.material-icons.prefix lock
-           input.validate(type='password', name='password' id='password')
-           label(for='password') Enter your password.
-       div.row
-         div.input-field.col.s12
-           i.material-icons.prefix lock
-           input.validate(type='password', name='password-confirm' id='password-confirm')
-           label(for='password') Confirm your password.
-         label(style="float: right;")
-           a.pink-text(href='/login') Already have an account? Sign in.
-       div.row
-         div.input-filed.col.s12
-           p
-             input#Teacher(name="role_selector", type='radio', value="Teacher")
-             label(for='Teacher') Teacher
-             input#Student(name="role_selector", type='radio', value="Student")
-             label(for='Student') Student
-       br
-       center
-       div.row
-         button.col.s12.btn.btn-large.waves-effect.red.darken-2(type="submit") Login
+     block title
+       title Sign Up
+
+     block content
+       h3 This is the Signup page.
+       form.col.s12(method='post')
+         div.row
+           div.col.s12
+         div.row
+           div.input-field.col.s12
+             i.material-icons.prefix email
+             input.validate(type='email', name='email' id='email')
+             label(for='email') Enter your email.
+         div.row
+           div.input-field.col.s12
+             i.material-icons.prefix lock
+             input.validate(type='password', name='password' id='password')
+             label(for='password') Enter your password.
+         div.row
+           div.input-field.col.s12
+             i.material-icons.prefix lock
+             input.validate(type='password', name='password-confirm' id='password-confirm')
+             label(for='password') Confirm your password.
+           label(style="float: right;")
+             a.pink-text(href='/login') Already have an account? Sign in.
+         div.row
+           div.input-fied.col.s12
+             p
+               input#teacher(name="role_selector", type='radio', value="Teacher")
+               label(for='Teacher') Teacher
+               input#student(name="role_selector", type='radio', value="Student")
+               label(for='Student') Student
+         div.row
+           div.input-field.col.s12
+             p
+               input#firstName(name="firstName", type="text")
+         div.row
+           div.input-field.col.s12
+             p
+               input#lastName(name="lastName", type="text")
+         br
+         center
+         div.row
+           button.col.s12.btn.btn-large.waves-effect.red.darken-2(type="submit") Login
    #+END_SRC
 ** Login
    #+NAME: login_page
@@ -495,25 +649,32 @@
    #+END_SRC
 
    #+BEGIN_SRC pug :tangle ./views/login.pug
-     form.col.s12(method='post')
-       div.row
-         div.col.s12
-       div.row
-         div.input-field.col.s12
-           i.material-icons.prefix account_circle
-           input.validate(type='email', name='email' id='email')
-           label(for='email') Enter your email.
-       div.row
-         div.input-field.col.s12
-           i.material-icons.prefix lock
-           input.validate(type='password', name='password' id='password')
-           label(for='password') Enter your password.
-         label(style="float: right;")
-           a.pink-text(href='/signup') Don't have an account? Sign up!
-       br
-       center
-       div.row
-         button.col.s12.btn.btn-large.waves-effect.red.darken-2(type="submit") Login
+     //- login.pug
+     extends layout.pug
+
+     block title
+       title Login
+
+     block content
+       form.col.s12(method='post')
+         div.row
+           div.col.s12
+         div.row
+           div.input-field.col.s12
+             i.material-icons.prefix account_circle
+             input.validate(type='email', name='email' id='email')
+             label(for='email') Enter your email.
+         div.row
+           div.input-field.col.s12
+             i.material-icons.prefix lock
+             input.validate(type='password', name='password' id='password')
+             label(for='password') Enter your password.
+           label(style="float: right;")
+             a.pink-text(href='/signup') Don't have an account? Sign up!
+         br
+         center
+         div.row
+           button.col.s12.btn.btn-large.waves-effect.red.darken-2(type="submit") Login
    #+END_SRC
 ** Profile
    #+NAME: profile_page
@@ -526,7 +687,6 @@
              });
          });
          const messagePromise = new Promise((resolve, reject) => {
-             console.log(req.user["identity"]["low"]);
              getMessagesForUser(req.user["identity"]["low"], (err, messages) => {
                  if (err) { reject(err); }
                  else { resolve(messages); }
@@ -555,32 +715,44 @@
 
    #+BEGIN_SRC pug :tangle ./views/profile.pug
      //- profile.pug
+     extends layout.pug
 
-     title= title
-     h1 Welcome!
-     h2 This is the Root page.
-     if user
-       p User Detected
-       p Welcome, #{user["properties"]["firstName"]}
-     h2 Here are your messages:
-     ul
-       each element in messageRecords
-         li Message: #{element.message}, Sender: #{element.sender}
-       else
-         li No messages :()
-     h2 Here are the available activities:
-     ul
-       each element in activities
-         li Activity: #{JSON.stringify(element)}
-       else
-         li No activities yet :()
+     block title
+       title= title
 
-     h2 Here are the users of the system:
-     ul
-       each element in users
-         li User: #{JSON.stringify(element)}
-       else
-         li No users :()
+     block content
+       div.container
+         h1 Welcome!
+         h3 This is the Profile page.
+         a(href="/create") Create an Activity!
+         if user
+           p User Detected
+           p Welcome, #{user["properties"]["firstName"]}
+         h3 Here are your messages:
+         ul
+           each element in messageRecords
+             li Message: #{element.message}, Sender: #{element.sender}
+           else
+             li No messages :()
+         h3 Here are the available activities:
+         ul
+           each element in activities
+             li
+               h4= element["properties"]["name"]
+               pre.language-json
+                 code.language-json= JSON.stringify(element, null, '\t')
+           else
+             p No activities yet :()
+
+         h3 Here are the users of the system:
+         ul
+           each element in users
+             li
+               h4 #{element["properties"]["firstName"] + ' ' + element["properties"]["lastName"]}
+               pre.language-json
+                 code.language-json= JSON.stringify(element, null, '\t')
+           else
+             li No users :()
    #+END_SRC
 ** Create
    #+NAME: create_page
@@ -589,8 +761,44 @@
          res.render('create', { title: "Creating Activity" });
      });
      app.post('/create', isTeacher, function(req, res) {
-         res.redirect('/profile');
+         activityAdd(req.user["identity"]["low"],
+                     req.body.activityName,
+                     req.body.activityDescription,
+                     req.body.requestedAttendees.split(", "),
+                     (err, activity) => {
+                         console.log("Created activity \"" + activity["properties"]["description"] + "\"");
+                         res.redirect('/profile');
+                     });
      });
+   #+END_SRC
+
+   #+BEGIN_SRC pug :tangle ./views/create.pug
+     //- create.pug
+     extends layout.pug
+
+     block title
+       title= title
+
+     block content
+       div.container
+         h1 Create an Activity
+         form.col.s12(method='post')
+           div.row
+             div.input-field.col.s12
+               input#activityName(type='text', name='activityName')
+               label(for='activityName') Name your new activity.
+           div.row
+             div.input-field.col.s12
+               input#activityDescription(type='text', name='activityDescription')
+               label(for='activityDescription') Describe your activity.
+           div.row
+             div.input-field.col.s12
+               input#requestedAttendees(type='text', name='requestedAttendees')
+               label(for='requestedAttendees') Invite students to your activity
+           br
+           center
+           div.row
+             button.col.s12.btn.btn-large.waves-effect.red.darken-2(type="submit") Login
    #+END_SRC
 
 ** 404 Error page
@@ -606,6 +814,28 @@
              return;
          }
      });
+   #+END_SRC
+
+   #+BEGIN_SRC pug :tangle ./views/404.pug
+     //- 404.pug
+     extends layout
+
+     block title
+       title= title
+
+     block content
+       +parallax('/res/background-edited1.jpg', 'index-banner')
+         h1.header.center.red-text.text-lighten-2 That's an error! Whoops!
+         div.row.center
+           h5.header.col.s12.light The page you requested, #{url}, does not exist. Try re-entering it, or stick around and we'll show you a cat video.
+
+       div.blue-grey.darken-4
+         div.container
+           div.section
+             div.row
+               div.col.s12.center
+                 h4.white-text You know you want to.
+                 <iframe width="560" height="315" src="https://www.youtube.com/embed/m9VO7X_q9nw?rel=0" frameborder="0" allowfullscreen></iframe>
    #+END_SRC
 
 ** Route Middleware Functions
@@ -656,5 +886,3 @@
     <<route_middleware_functions>>
     <<run_server>>
   #+END_SRC
-
-  

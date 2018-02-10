@@ -1,0 +1,26 @@
+//- create.pug
+extends layout.pug
+
+block title
+  title= title
+
+block content
+  div.container
+    h1 Create an Activity
+    form.col.s12(method='post')
+      div.row
+        div.input-field.col.s12
+          input#activityName(type='text', name='activityName')
+          label(for='activityName') Name your new activity.
+      div.row
+        div.input-field.col.s12
+          input#activityDescription(type='text', name='activityDescription')
+          label(for='activityDescription') Describe your activity.
+      div.row
+        div.input-field.col.s12
+          input#requestedAttendees(type='text', name='requestedAttendees')
+          label(for='requestedAttendees') Invite students to your activity
+      br
+      center
+      div.row
+        button.col.s12.btn.btn-large.waves-effect.red.darken-2(type="submit") Login

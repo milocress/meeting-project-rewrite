@@ -1,27 +1,39 @@
 //- profile.pug
+extends layout.pug
 
-title= title
-h1 Welcome!
-h2 This is the Root page.
-if user
-  p User Detected
-  p Welcome, #{user["properties"]["firstName"]}
-h2 Here are your messages:
-ul
-  each element in messageRecords
-    li Message: #{element.message}, Sender: #{element.sender}
-  else
-    li No messages :()
-h2 Here are the available activities:
-ul
-  each element in activities
-    li Activity: #{JSON.stringify(element)}
-  else
-    li No activities yet :()
+block title
+  title= title
 
-h2 Here are the users of the system:
-ul
-  each element in users
-    li User: #{JSON.stringify(element)}
-  else
-    li No users :()
+block content
+  div.container
+    h1 Welcome!
+    h3 This is the Profile page.
+    a(href="/create") Create an Activity!
+    if user
+      p User Detected
+      p Welcome, #{user["properties"]["firstName"]}
+    h3 Here are your messages:
+    ul
+      each element in messageRecords
+        li Message: #{element.message}, Sender: #{element.sender}
+      else
+        li No messages :()
+    h3 Here are the available activities:
+    ul
+      each element in activities
+        li
+          h4= element["properties"]["name"]
+          pre.language-json
+            code.language-json= JSON.stringify(element, null, '\t')
+      else
+        p No activities yet :()
+
+    h3 Here are the users of the system:
+    ul
+      each element in users
+        li
+          h4 #{element["properties"]["firstName"] + ' ' + element["properties"]["lastName"]}
+          pre.language-json
+            code.language-json= JSON.stringify(element, null, '\t')
+      else
+        li No users :()

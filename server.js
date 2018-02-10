@@ -22,7 +22,7 @@ function findByEmail(email, cb) {
 
 function findById(id, cb) {
     session.run(
-        'MATCH (user) WHERE ID(user) = $identity RETURN user', { identity: id }
+        'MATCH (user) WHERE ID(user) = $identity RETURN user', { identity: neo4j.int(id) }
     ).then(results => {
         session.close();
         if (!results.records[0]) {
@@ -118,8 +118,8 @@ function activityAdd(creatorId, activityName, activityDescription, requestedAtte
     ).then(results => {
         session.close();
         activityId = results.records[0].get('activity')["identity"]["low"];
-        activityInvite(activityId, requestedAttendees, function(err, activity) {
-            return cb(null, activity);
+        activityInvite(activityId, requestedAttendees, () => {
+            return cb(null, results.records[0].get('activity'));
         })
     });
 }
@@ -137,7 +137,7 @@ function activityDel(activityId, cb) {
 function activityInvite(activityId, requestedAttendees, cb) {
     requestedAttendees.forEach(user_email => {
         session.run(
-            'MATCH (activity:Activity),(student:User) WHERE ID(activity) = $activityId AND student.email = $email CREATE (student)-[rel:INVITED_TO]->(activity) rel.time = TIMESTAMP() RETURN student',
+            'MATCH (activity:Activity),(student:User) WHERE ID(activity) = $activityId AND student.email = $email CREATE (student)-[rel:INVITED_TO]->(activity) SET rel.time = TIMESTAMP()',
             {
                 activityId: activityId,
                 email: user_email
@@ -146,7 +146,7 @@ function activityInvite(activityId, requestedAttendees, cb) {
             session.close();
         });
     });
-    return cb(null, results.records[0].get('activity'));
+    return cb();
 }
 
 function joinActivity(userId, activityId, cb) {
@@ -166,7 +166,7 @@ function getActivities(cb) {
         if (!results.records.length) { return cb(null, []); }
         activities = [];
         results.records.forEach(res => {
-            activities.push(res.get('activites'));
+            activities.push(res.get('activities'));
         })
         return cb(null, activities);
     });
@@ -206,7 +206,6 @@ function getMessagesForUser(userId, cb) {
     ).then(results => {
         session.close();
         var ret = [];
-        console.log("I got here");
         if (!results.records.length) { return cb(null, []); }
         results.records.forEach((record) => {
             console.log('Pushing...');
@@ -262,7 +261,7 @@ passport.use('local-signup', new Strategy({
     function(req, email, password, cb) {
         findByEmail(email, function (err, user) {
             if (!user) {
-                userAdd(email, password, req.body.role_selector, function(err, new_user) {
+                userAdd(email, password, req.body.role_selector, req.body.firstName, req.body.lastName, function(err, new_user) {
                     cb(null, new_user);
                 });
             }
@@ -313,7 +312,6 @@ app.use(bodyParser.urlencoded({
 app.use(express.static('public'));
 
 app.get('/', function (req, res) {
-    if (req.user) { console.log("Welcome " + req.user["properties"]["firstName"]); }
     res.render('index', {
         title:"CVU Study Form",
         user: req.user
@@ -349,7 +347,6 @@ app.get('/profile', isLoggedIn, function (req, res) {
         });
     });
     const messagePromise = new Promise((resolve, reject) => {
-        console.log(req.user["identity"]["low"]);
         getMessagesForUser(req.user["identity"]["low"], (err, messages) => {
             if (err) { reject(err); }
             else { resolve(messages); }
@@ -378,7 +375,14 @@ app.get('/create', isTeacher, function(req, res) {
     res.render('create', { title: "Creating Activity" });
 });
 app.post('/create', isTeacher, function(req, res) {
-    res.redirect('/profile');
+    activityAdd(req.user["identity"]["low"],
+                req.body.activityName,
+                req.body.activityDescription,
+                req.body.requestedAttendees.split(", "),
+                (err, activity) => {
+                    console.log("Created activity \"" + activity["properties"]["description"] + "\"");
+                    res.redirect('/profile');
+                });
 });
 app.get('*', function(req, res, next){
     res.status(404);

@@ -11,7 +11,7 @@ block content
     a(href="/create") Create an Activity!
     if user
       p User Detected
-      p Welcome, #{user["properties"]["firstName"]}
+      p Welcome, #{user.properties.firstName}
     h3 Here are your messages:
     ul
       each element in messageRecords
@@ -22,7 +22,7 @@ block content
     ul
       each element in activities
         li
-          h4= element["properties"]["name"]
+          h4= element.properties.name
           pre.language-json
             code.language-json= JSON.stringify(element, null, '\t')
       else
@@ -32,7 +32,7 @@ block content
     ul
       each element in users
         li
-          h4 #{element["properties"]["firstName"] + ' ' + element["properties"]["lastName"]}
+          h4 #{element.properties.firstName + ' ' + element.properties.lastName}
           pre.language-json
             code.language-json= JSON.stringify(element, null, '\t')
       else

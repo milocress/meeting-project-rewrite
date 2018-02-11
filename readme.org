@@ -9,12 +9,12 @@
 #+EXCLUDE_TAGS: noexport
 #+CREATOR: Emacs 25.3.1 (Org mode 9.1.6)
 
-* TODO Interactive Shell
+* Interactive Shell
   We want our program to be built from a shell interface. This is because the backend and the frontend should be largely separable and modular. So, I'm creating a shell interface that can take several corg-element--set-regexps: Symbol’s function definition is void: org-link-types [2 times]ommands:
 
   - User Operations
     - =userAdd=
-   Unhandled - =userDel=
+    - =userDel=
     - =getUsers=
     - =getStudents=
 
@@ -30,16 +30,76 @@
     - =messageDel=
     - =getMessagesForUser=
 
-  #+NAME: interactive_shell_initialization
-  #+BEGIN_SRC javascript
-    const commander  = require('commander');
-    const inquirer = require('inquirer');
-  #+END_SRC
+** Initialization
+   #+NAME: interactive_shell_initialization
+   #+BEGIN_SRC javascript
+     const commander = require('commander');
+     const vorpal    = require('vorpal')();
+   #+END_SRC
+
+   #+NAME: interactive_shell_configuration
+   #+BEGIN_SRC javascript
+     vorpal
+         .command('userAdd <email> <password> <role> <firstName> <lastName>', 'Adds User')
+         .option('-v, --verbose', 'Prints user information as prettified JSON.')
+         .action(function(args, callback) {
+             userAdd(args.email, args.password, args.role, args.firstName, args.lastName, (err, user) => {
+                 console.log("Created User " + args.firstName + ' ' + args.lastName + '.');
+                 if (args.options.verbose) {
+                     console.log(JSON.stringify(user, null, '\t'));
+                 }
+                 callback();
+             });
+         });
+
+
+     vorpal
+         .command('userDel [email]', 'Deletes User')
+         .option('-v, --verbose', 'Prints user information as prettified JSON.')
+         .option('-e, --email <email>')
+         .option('-i, --id <id>')
+         .action(function(args, callback) {
+             if (!args.options.id && (args.options.email || args.email)) {
+                 console.log("Deleting user by email.");
+                 var email = (args.options.email) ? args.options.email : args.email;
+                 userDelByEmail(email, (err) => {
+                     if (err) { console.log(err); callback(); }
+                     else {
+                         console.log("Deleted User " + args.options.email + '.');
+                         callback();
+                     }
+                 });
+             }
+             else if (args.options.id) {
+                 console.log("Deleting user by ID.");
+                 userDel(args.options.id, (err) => {
+                     if (err) { console.log(err); callback(); }
+                     else {
+                         console.log("Deleted User " + user.properties.email + '.');
+                         callback();
+                     }
+                 });
+             }
+             else {
+                 console.log("Expected ID or Email");
+                 callback();
+             }
+         });
+
+     vorpal
+         .delimiter('myapp$')
+         .show()
+         .parse(process.argv);
+   #+END_SRC
 
 * Neo4j Configuration
   In order to get the persistent data storage that our webapp needs, we will employ a database. I've chosen a property-graph database for its unique and powerful feature-set and analytical capabilities. We'll have a really easy and useful way of visualizing the users and events at CVU.
 ** Initialization
+   An annoying thing about this code is that the traditional =port = process.env.PORT || 3000= with the Boolean or thingy (=||=) doesn't work, for whatever reason. In that example, the value of =port= would always be =3000= even if =process.env.PORT= was defined.
 
+   So, I've started using a ternary expression to check if these environment variables are defined, and assign values accordingly (see below).
+
+   This paradigm is ugly, but it seems the more elegant implementation doesn't work, so we'll stick with ugly for the time being, until we have development time to spend on fixing this problem. 
    #+NAME: neo4j_initialization
    #+BEGIN_SRC javascript
      const neo4j          = require('neo4j-driver').v1;
@@ -92,30 +152,73 @@
    #+NAME: neo4j_user_ops
    #+BEGIN_SRC javascript
      function userAdd(email, password, role, firstName, lastName, cb) {
-         session.run(
-             'CREATE (user:User {email: $email, hashed_password: $hashed_password, role: $role, firstName: $firstName, lastName: $lastName}) RETURN user',
-             {
-                 email: email,
-                 hashed_password: generateHash(password),
-                 role: role,
-                 firstName: firstName,
-                 lastName: lastName
+         findByEmail(email, function (err, user) {
+             if (!user) {
+                 session.run(
+                     'CREATE (user:User {\
+                      email: $email, \
+                      hashed_password: $hashed_password, \
+                      role: $role, \
+                      firstName: $firstName, \
+                      lastName: $lastName}) \
+                      RETURN user',
+                     {
+                         email: email,
+                         hashed_password: generateHash(password),
+                         role: role,
+                         firstName: firstName,
+                         lastName: lastName
+                     }
+                 ).then(results => {
+                     session.close();
+                     user = results.records[0].get('user');
+                     cb(null, user);
+                 });
              }
-         ).then(results => {
-             session.close();
-             user = results.records[0].get('user');
-             cb(null, user);
-         });
+             else {
+                 console.log("User " + args.email + " exists. Enter a unique email.");
+                 cb("User Exists", null);
+             }
+         })
      }
      function userDel(userId, cb) {
-         session.run(
-             'MATCH (user:User) WHERE ID(user) = $userId DETACH DELETE user',
-             {userId: userId}
-         ).then(results => {
-             session.close();
-             cb(null);
+         findById(id, function(err, user) {
+             if (user) {
+                 session.run(
+                     'MATCH (user:User) \
+                      WHERE ID(user) = $userId \
+                      DETACH DELETE user',
+                     {userId: neo4j.int(userId)}
+                 ).then(results => {
+                     session.close();
+                     cb(null);
+                 });
+             }
+             else {
+                 console.log("User Doesn't Exist.");
+                 cb("User Doesn't Exist.")
+             }
          });
      }
+     function userDelByEmail(email, cb) {
+         findByEmail(email, function(err, user) {
+             if (user) {
+                 session.run(
+                     'MATCH (user:User) \
+                      WHERE user.email = $email \
+                      DETACH DELETE user',
+                     {email: email}
+                 ).then(results => {
+                     session.close();
+                     cb(null)
+                 });
+             }
+             else {
+                 cb("User Doesn't Exist.");
+             }
+         });
+     }
+
      function getUsers(cb) {
          session.run(
              'MATCH (users:User) RETURN users'
@@ -132,7 +235,9 @@
 
      function getStudents(cb) {
          session.run(
-             'MATCH (users:User) WHERE users.role = "Student" RETURN users'
+             'MATCH (users:User) \
+             WHERE users.role = "Student" \
+             RETURN users'
          ).then(results => {
              session.close();
              if (!results.records.length) { return cb(null, []); }
@@ -150,8 +255,10 @@
    #+BEGIN_SRC javascript
      function findActivityById(activityId, cb) {
          session.run(
-             'MATCH (activity:Activity) WHERE ID(activity) = $activityId RETURN activity',
-             {activityId: activityId}).then(results => {
+             'MATCH (activity:Activity) \
+             WHERE ID(activity) = $activityId \
+             RETURN activity',
+             {activityId: neo4j.int(activityId)}).then(results => {
                  session.close();
                  ret = results.records[0].get('activity');
                  if (!ret) { return cb("Activity Not Found", null); }
@@ -174,15 +281,21 @@
      ,**/
      function activityAdd(creatorId, activityName, activityDescription, requestedAttendees, cb) {
          session.run(
-             'MATCH (creator:User) WHERE ID(creator) = $creatorId CREATE (creator)-[:CREATED]->(activity:Activity {name: $activityName, description: $activityDescription}) RETURN activity',
+             'MATCH (creator:User) \
+             WHERE ID(creator) = $creatorId \
+             CREATE (creator)-[:CREATED]->(activity:Activity {\
+               name: $activityName, \
+               description: $activityDescription\
+             }) \
+             RETURN activity',
              {
-                 creatorId: creatorId,
+                 creatorId: neo4j.int(creatorId),
                  activityName: activityName,
                  activityDescription: activityDescription
              }
          ).then(results => {
              session.close();
-             activityId = results.records[0].get('activity')["identity"]["low"];
+             activityId = results.records[0].get('activity').identity.low;
              activityInvite(activityId, requestedAttendees, () => {
                  return cb(null, results.records[0].get('activity'));
              })
@@ -190,9 +303,11 @@
      }
      function activityDel(activityId, cb) {
          session.run(
-             'MATCH (activity:Activity) WHERE ID(activity) = $activityId DETACH DELETE activity',
+             'MATCH (activity:Activity) \
+              WHERE ID(activity) = $activityId \
+              DETACH DELETE activity',
              {
-                 activityId: activityId
+                 activityId: neo4j.int(activityId)
              }
          ).then(results => {
              session.close();
@@ -202,9 +317,12 @@
      function activityInvite(activityId, requestedAttendees, cb) {
          requestedAttendees.forEach(user_email => {
              session.run(
-                 'MATCH (activity:Activity),(student:User) WHERE ID(activity) = $activityId AND student.email = $email CREATE (student)-[rel:INVITED_TO]->(activity) SET rel.time = TIMESTAMP()',
+                 'MATCH (activity:Activity),(student:User) \
+                 WHERE ID(activity) = $activityId AND student.email = $email \
+                 CREATE (student)-[rel:INVITED_TO]->(activity) \
+                 SET rel.time = TIMESTAMP()',
                  {
-                     activityId: activityId,
+                     activityId: neo4j.int(activityId),
                      email: user_email
                  }
              ).then(results => {
@@ -216,7 +334,11 @@
 
      function joinActivity(userId, activityId, cb) {
          session.run(
-             'MATCH (activity:Activity),(student:User) WHERE ID(activity) = $activityId AND ID(student) = $studentId CREATE (student)-[rel:JOINED]->(activity) rel.time = TIMESTAMP() RETURN activity'
+             'MATCH (activity:Activity),(student:User) \
+             WHERE ID(activity) = $activityId AND ID(student) = $studentId \
+             CREATE (student)-[rel:JOINED]->(activity) \
+             SET rel.time = TIMESTAMP() \
+             RETURN activity'
          ).then(results => {
              session.close();
              return cb(null, results.records[0].get('activity'));
@@ -247,8 +369,8 @@
          session.run(
              'MATCH (sender:User), (recipient:User) WHERE ID(sender) = $senderId AND ID(recipient) = $recipientId CREATE (sender)-[message:SENT]->(recipient) message.body = $message message.time = TIMESTAMP() RETURN message',
              {
-                 senderId: senderId,
-                 recipientId: recipientId,
+                 senderId: neo4j.int(senderId),
+                 recipientId: neo4j.int(recipientId),
                  message: message
              }
          ).then(results => {
@@ -260,7 +382,7 @@
          session.run(
              'MATCH ()-[r:SENT]->() WHERE ID(r) = messageId DELETE r',
              {
-                 messageId: messageId
+                 messageId: neo4j.int(messageId)
              }
          ).then(results => {
              session.close();
@@ -272,7 +394,7 @@
          session.run(
              'MATCH (recipient:User)<-[message:SENT]-(sender:User) WHERE ID(recipient) = $userId RETURN message, sender',
              {
-                 userId: userId
+                 userId: neo4j.int(userId)
              }
          ).then(results => {
              session.close();
@@ -327,7 +449,7 @@
              findByEmail(email, function(err, user) {
                  if (err) { return cb(err); }
                  if (!user) { return cb(null, false); }
-                 if (!validPassword(password, user["properties"]["hashed_password"])) { return cb(null, false); }
+                 if (!validPassword(password, user.properties.hashed_password)) { return cb(null, false); }
                  req.user = user;
                  return cb(null, user);
              });
@@ -358,7 +480,7 @@
    #+NAME: passport_serialize_deserialize
    #+BEGIN_SRC javascript
     passport.serializeUser(function(user, cb) {
-        cb(null, user["identity"]["low"]);
+        cb(null, user.identity.low);
     });
 
     passport.deserializeUser(function(id, cb) {
@@ -499,7 +621,7 @@
 
         div.footer-copyright
           div.container.
-            &copy;CVUHS #{(new Date()).getFullYear()}. Powered by node.js, materialize.css, and lots of caffeine.
+            &copy;CVUHS #{(new Date()).getFullYear()}. Powered by node.js, neo4j, materialize.css, and lots of caffeine.
   #+END_SRC 
 
 ** Body Scripts Mixin
@@ -656,25 +778,26 @@
        title Login
 
      block content
-       form.col.s12(method='post')
-         div.row
-           div.col.s12
-         div.row
-           div.input-field.col.s12
-             i.material-icons.prefix account_circle
-             input.validate(type='email', name='email' id='email')
-             label(for='email') Enter your email.
-         div.row
-           div.input-field.col.s12
-             i.material-icons.prefix lock
-             input.validate(type='password', name='password' id='password')
-             label(for='password') Enter your password.
-           label(style="float: right;")
-             a.pink-text(href='/signup') Don't have an account? Sign up!
-         br
-         center
-         div.row
-           button.col.s12.btn.btn-large.waves-effect.red.darken-2(type="submit") Login
+       div.container
+         form.col.s12(method='post')
+           div.row
+             div.col.s12
+           div.row
+             div.input-field.col.s12
+               i.material-icons.prefix account_circle
+               input.validate(type='email', name='email' id='email')
+               label(for='email') Enter your email.
+           div.row
+             div.input-field.col.s12
+               i.material-icons.prefix lock
+               input.validate(type='password', name='password' id='password')
+               label(for='password') Enter your password.
+             label(style="float: right;")
+               a.pink-text(href='/signup') Don't have an account? Sign up!
+           br
+           center
+           div.row
+             button.col.s12.btn.btn-large.waves-effect.red.darken-2(type="submit") Login
    #+END_SRC
 ** Profile
    #+NAME: profile_page
@@ -687,7 +810,7 @@
              });
          });
          const messagePromise = new Promise((resolve, reject) => {
-             getMessagesForUser(req.user["identity"]["low"], (err, messages) => {
+             getMessagesForUser(req.user.identity.low, (err, messages) => {
                  if (err) { reject(err); }
                  else { resolve(messages); }
              });
@@ -727,7 +850,7 @@
          a(href="/create") Create an Activity!
          if user
            p User Detected
-           p Welcome, #{user["properties"]["firstName"]}
+           p Welcome, #{user.properties.firstName}
          h3 Here are your messages:
          ul
            each element in messageRecords
@@ -738,7 +861,7 @@
          ul
            each element in activities
              li
-               h4= element["properties"]["name"]
+               h4= element.properties.name
                pre.language-json
                  code.language-json= JSON.stringify(element, null, '\t')
            else
@@ -748,7 +871,7 @@
          ul
            each element in users
              li
-               h4 #{element["properties"]["firstName"] + ' ' + element["properties"]["lastName"]}
+               h4 #{element.properties.firstName + ' ' + element.properties.lastName}
                pre.language-json
                  code.language-json= JSON.stringify(element, null, '\t')
            else
@@ -761,12 +884,12 @@
          res.render('create', { title: "Creating Activity" });
      });
      app.post('/create', isTeacher, function(req, res) {
-         activityAdd(req.user["identity"]["low"],
+         activityAdd(req.user.identity.low,
                      req.body.activityName,
                      req.body.activityDescription,
                      req.body.requestedAttendees.split(", "),
                      (err, activity) => {
-                         console.log("Created activity \"" + activity["properties"]["description"] + "\"");
+                         console.log("Created activity \"" + activity.properties.description + "\"");
                          res.redirect('/profile');
                      });
      });
@@ -851,7 +974,7 @@
      }
 
      function isTeacher(req, res, cb) {
-         if (req.isAuthenticated() && ( req.user["properties"]["role"] == "Teacher" || req.user["properties"]["role"] == "Admin")) {
+         if (req.isAuthenticated() && ( req.user.properties.role === "Teacher" || req.user.properties.role == "Admin")) {
              return cb();
          }
 
@@ -867,6 +990,7 @@
    #+END_SRC
 * Complete Code
   #+BEGIN_SRC javascript :tangle server.js :noweb yes
+    #! /usr/bin/node
     <<interactive_shell_initialization>>
     <<neo4j_initialization>>
     <<neo4j_configuration>>
@@ -885,4 +1009,5 @@
     <<404_error_page>>
     <<route_middleware_functions>>
     <<run_server>>
+    <<interactive_shell_configuration>>
   #+END_SRC

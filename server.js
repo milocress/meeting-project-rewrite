@@ -1,5 +1,6 @@
-const commander  = require('commander');
-const inquirer = require('inquirer');
+#! /usr/bin/node
+const commander = require('commander');
+const vorpal    = require('vorpal')();
 const neo4j          = require('neo4j-driver').v1;
 const graphenedbURL  = ( process.env.GRAPHENEDB_BOLT_URL )      ?  process.env.GRAPHENEDB_BOLT_URL     : "bolt://localhost:7687";
 const graphenedbUser = ( process.env.GRAPHENEDB_BOLT_USER )     ? process.env.GRAPHENEDB_BOLT_USER     : "neo4j";
@@ -32,30 +33,73 @@ function findById(id, cb) {
     });
 }
 function userAdd(email, password, role, firstName, lastName, cb) {
-    session.run(
-        'CREATE (user:User {email: $email, hashed_password: $hashed_password, role: $role, firstName: $firstName, lastName: $lastName}) RETURN user',
-        {
-            email: email,
-            hashed_password: generateHash(password),
-            role: role,
-            firstName: firstName,
-            lastName: lastName
+    findByEmail(email, function (err, user) {
+        if (!user) {
+            session.run(
+                'CREATE (user:User {\
+                 email: $email, \
+                 hashed_password: $hashed_password, \
+                 role: $role, \
+                 firstName: $firstName, \
+                 lastName: $lastName}) \
+                 RETURN user',
+                {
+                    email: email,
+                    hashed_password: generateHash(password),
+                    role: role,
+                    firstName: firstName,
+                    lastName: lastName
+                }
+            ).then(results => {
+                session.close();
+                user = results.records[0].get('user');
+                cb(null, user);
+            });
         }
-    ).then(results => {
-        session.close();
-        user = results.records[0].get('user');
-        cb(null, user);
-    });
+        else {
+            console.log("User " + args.email + " exists. Enter a unique email.");
+            cb("User Exists", null);
+        }
+    })
 }
 function userDel(userId, cb) {
-    session.run(
-        'MATCH (user:User) WHERE ID(user) = $userId DETACH DELETE user',
-        {userId: userId}
-    ).then(results => {
-        session.close();
-        cb(null);
+    findById(id, function(err, user) {
+        if (user) {
+            session.run(
+                'MATCH (user:User) \
+                 WHERE ID(user) = $userId \
+                 DETACH DELETE user',
+                {userId: neo4j.int(userId)}
+            ).then(results => {
+                session.close();
+                cb(null);
+            });
+        }
+        else {
+            console.log("User Doesn't Exist.");
+            cb("User Doesn't Exist.")
+        }
     });
 }
+function userDelByEmail(email, cb) {
+    findByEmail(email, function(err, user) {
+        if (user) {
+            session.run(
+                'MATCH (user:User) \
+                 WHERE user.email = $email \
+                 DETACH DELETE user',
+                {email: email}
+            ).then(results => {
+                session.close();
+                cb(null)
+            });
+        }
+        else {
+            cb("User Doesn't Exist.");
+        }
+    });
+}
+
 function getUsers(cb) {
     session.run(
         'MATCH (users:User) RETURN users'
@@ -72,7 +116,9 @@ function getUsers(cb) {
 
 function getStudents(cb) {
     session.run(
-        'MATCH (users:User) WHERE users.role = "Student" RETURN users'
+        'MATCH (users:User) \
+        WHERE users.role = "Student" \
+        RETURN users'
     ).then(results => {
         session.close();
         if (!results.records.length) { return cb(null, []); }
@@ -85,8 +131,10 @@ function getStudents(cb) {
 }
 function findActivityById(activityId, cb) {
     session.run(
-        'MATCH (activity:Activity) WHERE ID(activity) = $activityId RETURN activity',
-        {activityId: activityId}).then(results => {
+        'MATCH (activity:Activity) \
+        WHERE ID(activity) = $activityId \
+        RETURN activity',
+        {activityId: neo4j.int(activityId)}).then(results => {
             session.close();
             ret = results.records[0].get('activity');
             if (!ret) { return cb("Activity Not Found", null); }
@@ -109,15 +157,21 @@ function findActivityById(activityId, cb) {
 **/
 function activityAdd(creatorId, activityName, activityDescription, requestedAttendees, cb) {
     session.run(
-        'MATCH (creator:User) WHERE ID(creator) = $creatorId CREATE (creator)-[:CREATED]->(activity:Activity {name: $activityName, description: $activityDescription}) RETURN activity',
+        'MATCH (creator:User) \
+        WHERE ID(creator) = $creatorId \
+        CREATE (creator)-[:CREATED]->(activity:Activity {\
+          name: $activityName, \
+          description: $activityDescription\
+        }) \
+        RETURN activity',
         {
-            creatorId: creatorId,
+            creatorId: neo4j.int(creatorId),
             activityName: activityName,
             activityDescription: activityDescription
         }
     ).then(results => {
         session.close();
-        activityId = results.records[0].get('activity')["identity"]["low"];
+        activityId = results.records[0].get('activity').identity.low;
         activityInvite(activityId, requestedAttendees, () => {
             return cb(null, results.records[0].get('activity'));
         })
@@ -125,9 +179,11 @@ function activityAdd(creatorId, activityName, activityDescription, requestedAtte
 }
 function activityDel(activityId, cb) {
     session.run(
-        'MATCH (activity:Activity) WHERE ID(activity) = $activityId DETACH DELETE activity',
+        'MATCH (activity:Activity) \
+         WHERE ID(activity) = $activityId \
+         DETACH DELETE activity',
         {
-            activityId: activityId
+            activityId: neo4j.int(activityId)
         }
     ).then(results => {
         session.close();
@@ -137,9 +193,12 @@ function activityDel(activityId, cb) {
 function activityInvite(activityId, requestedAttendees, cb) {
     requestedAttendees.forEach(user_email => {
         session.run(
-            'MATCH (activity:Activity),(student:User) WHERE ID(activity) = $activityId AND student.email = $email CREATE (student)-[rel:INVITED_TO]->(activity) SET rel.time = TIMESTAMP()',
+            'MATCH (activity:Activity),(student:User) \
+            WHERE ID(activity) = $activityId AND student.email = $email \
+            CREATE (student)-[rel:INVITED_TO]->(activity) \
+            SET rel.time = TIMESTAMP()',
             {
-                activityId: activityId,
+                activityId: neo4j.int(activityId),
                 email: user_email
             }
         ).then(results => {
@@ -151,7 +210,11 @@ function activityInvite(activityId, requestedAttendees, cb) {
 
 function joinActivity(userId, activityId, cb) {
     session.run(
-        'MATCH (activity:Activity),(student:User) WHERE ID(activity) = $activityId AND ID(student) = $studentId CREATE (student)-[rel:JOINED]->(activity) rel.time = TIMESTAMP() RETURN activity'
+        'MATCH (activity:Activity),(student:User) \
+        WHERE ID(activity) = $activityId AND ID(student) = $studentId \
+        CREATE (student)-[rel:JOINED]->(activity) \
+        SET rel.time = TIMESTAMP() \
+        RETURN activity'
     ).then(results => {
         session.close();
         return cb(null, results.records[0].get('activity'));
@@ -176,8 +239,8 @@ function messageAdd(senderId, recipientId, message, cb) {
     session.run(
         'MATCH (sender:User), (recipient:User) WHERE ID(sender) = $senderId AND ID(recipient) = $recipientId CREATE (sender)-[message:SENT]->(recipient) message.body = $message message.time = TIMESTAMP() RETURN message',
         {
-            senderId: senderId,
-            recipientId: recipientId,
+            senderId: neo4j.int(senderId),
+            recipientId: neo4j.int(recipientId),
             message: message
         }
     ).then(results => {
@@ -189,7 +252,7 @@ function messageDel(messageId, cb) {
     session.run(
         'MATCH ()-[r:SENT]->() WHERE ID(r) = messageId DELETE r',
         {
-            messageId: messageId
+            messageId: neo4j.int(messageId)
         }
     ).then(results => {
         session.close();
@@ -201,7 +264,7 @@ function getMessagesForUser(userId, cb) {
     session.run(
         'MATCH (recipient:User)<-[message:SENT]-(sender:User) WHERE ID(recipient) = $userId RETURN message, sender',
         {
-            userId: userId
+            userId: neo4j.int(userId)
         }
     ).then(results => {
         session.close();
@@ -245,7 +308,7 @@ passport.use('local-login', new Strategy({
         findByEmail(email, function(err, user) {
             if (err) { return cb(err); }
             if (!user) { return cb(null, false); }
-            if (!validPassword(password, user["properties"]["hashed_password"])) { return cb(null, false); }
+            if (!validPassword(password, user.properties.hashed_password)) { return cb(null, false); }
             req.user = user;
             return cb(null, user);
         });
@@ -271,7 +334,7 @@ passport.use('local-signup', new Strategy({
         })
     }));
 passport.serializeUser(function(user, cb) {
-    cb(null, user["identity"]["low"]);
+    cb(null, user.identity.low);
 });
 
 passport.deserializeUser(function(id, cb) {
@@ -347,7 +410,7 @@ app.get('/profile', isLoggedIn, function (req, res) {
         });
     });
     const messagePromise = new Promise((resolve, reject) => {
-        getMessagesForUser(req.user["identity"]["low"], (err, messages) => {
+        getMessagesForUser(req.user.identity.low, (err, messages) => {
             if (err) { reject(err); }
             else { resolve(messages); }
         });
@@ -375,12 +438,12 @@ app.get('/create', isTeacher, function(req, res) {
     res.render('create', { title: "Creating Activity" });
 });
 app.post('/create', isTeacher, function(req, res) {
-    activityAdd(req.user["identity"]["low"],
+    activityAdd(req.user.identity.low,
                 req.body.activityName,
                 req.body.activityDescription,
                 req.body.requestedAttendees.split(", "),
                 (err, activity) => {
-                    console.log("Created activity \"" + activity["properties"]["description"] + "\"");
+                    console.log("Created activity \"" + activity.properties.description + "\"");
                     res.redirect('/profile');
                 });
 });
@@ -403,7 +466,7 @@ function isLoggedIn(req, res, cb) {
 }
 
 function isTeacher(req, res, cb) {
-    if (req.isAuthenticated() && ( req.user["properties"]["role"] == "Teacher" || req.user["properties"]["role"] == "Admin")) {
+    if (req.isAuthenticated() && ( req.user.properties.role === "Teacher" || req.user.properties.role == "Admin")) {
         return cb();
     }
 
@@ -411,3 +474,54 @@ function isTeacher(req, res, cb) {
 }
 const port = (process.env.PORT) ? process.env.PORT : 3000;
 app.listen(port);
+vorpal
+    .command('userAdd <email> <password> <role> <firstName> <lastName>', 'Adds User')
+    .option('-v, --verbose', 'Prints user information as prettified JSON.')
+    .action(function(args, callback) {
+        userAdd(args.email, args.password, args.role, args.firstName, args.lastName, (err, user) => {
+            console.log("Created User " + args.firstName + ' ' + args.lastName + '.');
+            if (args.options.verbose) {
+                console.log(JSON.stringify(user, null, '\t'));
+            }
+            callback();
+        });
+    });
+
+
+vorpal
+    .command('userDel [email]', 'Deletes User')
+    .option('-v, --verbose', 'Prints user information as prettified JSON.')
+    .option('-e, --email <email>')
+    .option('-i, --id <id>')
+    .action(function(args, callback) {
+        if (!args.options.id && (args.options.email || args.email)) {
+            console.log("Deleting user by email.");
+            var email = (args.options.email) ? args.options.email : args.email;
+            userDelByEmail(email, (err) => {
+                if (err) { console.log(err); callback(); }
+                else {
+                    console.log("Deleted User " + args.options.email + '.');
+                    callback();
+                }
+            });
+        }
+        else if (args.options.id) {
+            console.log("Deleting user by ID.");
+            userDel(args.options.id, (err) => {
+                if (err) { console.log(err); callback(); }
+                else {
+                    console.log("Deleted User " + user.properties.email + '.');
+                    callback();
+                }
+            });
+        }
+        else {
+            console.log("Expected ID or Email");
+            callback();
+        }
+    });
+
+vorpal
+    .delimiter('myapp$')
+    .show()
+    .parse(process.argv);

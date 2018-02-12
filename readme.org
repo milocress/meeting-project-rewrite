@@ -33,18 +33,17 @@
 ** Initialization
    #+NAME: interactive_shell_initialization
    #+BEGIN_SRC javascript
-     const commander = require('commander');
      const vorpal    = require('vorpal')();
    #+END_SRC
 
-   #+NAME: interactive_shell_configuration
+** User Operations
+   #+NAME: interactive_shell_user_ops
    #+BEGIN_SRC javascript
      vorpal
          .command('userAdd <email> <password> <role> <firstName> <lastName>', 'Adds User')
          .option('-v, --verbose', 'Prints user information as prettified JSON.')
          .action(function(args, callback) {
              userAdd(args.email, args.password, args.role, args.firstName, args.lastName, (err, user) => {
-                 console.log("Created User " + args.firstName + ' ' + args.lastName + '.');
                  if (args.options.verbose) {
                      console.log(JSON.stringify(user, null, '\t'));
                  }
@@ -56,36 +55,140 @@
      vorpal
          .command('userDel [email]', 'Deletes User')
          .option('-v, --verbose', 'Prints user information as prettified JSON.')
-         .option('-e, --email <email>')
-         .option('-i, --id <id>')
+         .option('-e, --email <email>', 'Deletes user by email')
+         .option('-i, --id <id>', 'Deletes user by ID')
          .action(function(args, callback) {
              if (!args.options.id && (args.options.email || args.email)) {
-                 console.log("Deleting user by email.");
+                 console.log("[*] Deleting user by email.");
                  var email = (args.options.email) ? args.options.email : args.email;
                  userDelByEmail(email, (err) => {
                      if (err) { console.log(err); callback(); }
                      else {
-                         console.log("Deleted User " + args.options.email + '.');
                          callback();
                      }
                  });
              }
              else if (args.options.id) {
-                 console.log("Deleting user by ID.");
+                 console.log("[*] Deleting user by ID.");
                  userDel(args.options.id, (err) => {
                      if (err) { console.log(err); callback(); }
                      else {
-                         console.log("Deleted User " + user.properties.email + '.');
                          callback();
                      }
                  });
              }
              else {
-                 console.log("Expected ID or Email");
+                 console.log("[-] Expected ID or Email");
                  callback();
              }
          });
 
+     vorpal
+         .command('getUsers')
+         .action(function(args, callback) {
+             console.log("[*] Getting JSON-formatted list of users.")
+             getUsers((err, teachers) => {
+                 if (err) { console.log(err); return callback(); }
+                 else {
+                     users.forEach(user => {
+                         console.log(JSON.stringify(user, null, 2));
+                     });
+                     callback();
+                 }
+             })
+         });
+
+     vorpal
+         .command('getStudents')
+         .action(function(args, callback) {
+             console.log("[*] Getting JSON-formatted list of students.")
+             getStudents((err, students) => {
+                 if (err) { console.log(err); return callback(); }
+                 else {
+                     students.forEach(user => {
+                         console.log(JSON.stringify(user, null, 2));
+                     });
+                     callback();
+                 }
+             })
+         });
+
+     vorpal
+         .command('getTeachers')
+         .action(function(args, callback) {
+             console.log("[*] Getting JSON-formatted list of teachers.")
+             getTeachers((err, teachers) => {
+                 if (err) { console.log( '[-] ' + err); return callback(); }
+                 else {
+                     teachers.forEach(user => {
+                         console.log(JSON.stringify(user, null, 2));
+                     });
+                     callback();
+                 }
+             })
+         });
+   #+END_SRC
+
+** Activity Operations
+   #+NAME: interactive_shell_activity_ops
+   #+BEGIN_SRC javascript
+     vorpal
+         .command('activityAdd <creatorId> <activityName> <activityDescription> [requestedAttendees...]',
+                  'Adds an activity with specified parameters')
+         .option('-v, --verbose', 'Prints activity information as prettified JSON.')
+         .action(function(args, callback) {
+             console.log("[*] Creating activity " + activityName);
+             activityAdd(args.creatorId,
+                         args.activityName,
+                         args.activityDescription,
+                         args.requestedAttendees,
+                         (err, activity) => {
+
+                         });
+         });
+
+     vorpal
+         .command('activityDel <activityId>')
+         .action(function (args, callback) {
+             activityDel(args.activityId, (err) => {
+                 if (err) { console.log(err); callback(); }
+                 callback();
+             });
+         });
+
+     vorpal
+         .command('activityInvite <activityId> [requestedAttendees...]')
+         .action(function (args, callback) {
+             activityInvite(args.activityId, args.requestedAttendees, () => {
+                 callback();
+             });
+         });
+
+     vorpal
+         .command('joinActivity <userId> <activityId>')
+         .action(function (args, callback) {
+             joinActivity(args.userId, args.activityId, () => {
+                 callback();
+             });
+         });
+
+     vorpal
+         .command('getActivities')
+         .action(function (args, callback) {
+             getActivities((err, activities) => {
+                 if (err) { console.log( '[-] ' + err); return callback(); }
+                 else {
+                     activities.forEach(user => {
+                         console.log(JSON.stringify(user, null, 2));
+                     });
+                     callback();
+                 }
+             })
+         });
+   #+END_SRC
+** Startup
+   #+NAME: interactive_shell_startup
+   #+BEGIN_SRC javascript
      vorpal
          .delimiter('myapp$')
          .show()
@@ -122,19 +225,22 @@
    #+NAME: neo4j_configuration
    #+BEGIN_SRC javascript
      function findByEmail(email, cb) {
+         console.log("[*] Searching database for email: " + email);
          session.run(
              'MATCH (user:User {email: $email}) RETURN user', { email: email }
          ).then(results => {
              session.close();
              if (!results.records[0]) {
+                 console.log("[*] User not found, returning null.");
                  return cb(null, null);
-
-     }
+             }
+             console.log("[+] Found user, returning.");
              return cb(null, results.records[0].get('user'));
          });
      }
 
      function findById(id, cb) {
+         console.log("[*] Searching database for ID: " + id);
          session.run(
              'MATCH (user) WHERE ID(user) = $identity RETURN user', { identity: neo4j.int(id) }
          ).then(results => {
@@ -170,13 +276,14 @@
                          lastName: lastName
                      }
                  ).then(results => {
+                     console.log("[+] Added User " + email + " to database.");
                      session.close();
                      user = results.records[0].get('user');
                      cb(null, user);
                  });
              }
              else {
-                 console.log("User " + args.email + " exists. Enter a unique email.");
+                 console.log("[-] User " + args.email + " exists in database. Enter a unique email.");
                  cb("User Exists", null);
              }
          })
@@ -190,13 +297,13 @@
                       DETACH DELETE user',
                      {userId: neo4j.int(userId)}
                  ).then(results => {
+                     console.log("[+] Deleted user " + userId + " from database.");
                      session.close();
                      cb(null);
                  });
              }
              else {
-                 console.log("User Doesn't Exist.");
-                 cb("User Doesn't Exist.")
+                 cb("[-] User " + userId + " Doesn't Exist in database.")
              }
          });
      }
@@ -210,11 +317,12 @@
                      {email: email}
                  ).then(results => {
                      session.close();
+                     console.log("[+] Deleted user " + email + " from database.");
                      cb(null)
                  });
              }
              else {
-                 cb("User Doesn't Exist.");
+                 cb("[-] User " + userId + " Doesn't Exist in database.")
              }
          });
      }
@@ -224,6 +332,7 @@
              'MATCH (users:User) RETURN users'
          ).then(results => {
              session.close();
+             console.log("[+] Retrieved user records from database");
              if (!results.records.length) { return cb(null, []); }
              users = [];
              results.records.forEach(res => {
@@ -240,6 +349,24 @@
              RETURN users'
          ).then(results => {
              session.close();
+             console.log("[+] Retrieved student records from database");
+             if (!results.records.length) { return cb(null, []); }
+             users = [];
+             results.records.forEach(res => {
+                 users.push(res.get('users'));
+             })
+             return cb(null, users);
+         });
+     }
+
+     function getTeachers(cb) {
+         session.run(
+             'MATCH (users:User) \
+                  WHERE users.role = "Teacher" \
+                  RETURN users'
+         ).then(results => {
+             session.close();
+             console.log("[+] Retrieved teacher records from database");
              if (!results.records.length) { return cb(null, []); }
              users = [];
              results.records.forEach(res => {
@@ -254,6 +381,7 @@
    #+NAME: neo4j_activity_ops
    #+BEGIN_SRC javascript
      function findActivityById(activityId, cb) {
+         console.log("[*] Searching database for activityId: " + activityId + ".");
          session.run(
              'MATCH (activity:Activity) \
              WHERE ID(activity) = $activityId \
@@ -261,7 +389,8 @@
              {activityId: neo4j.int(activityId)}).then(results => {
                  session.close();
                  ret = results.records[0].get('activity');
-                 if (!ret) { return cb("Activity Not Found", null); }
+                 if (!ret) { return cb("[-] Activity Not Found", null); }
+                 console.log('[+] Found activity "' + ret.properties.name + '".');
                  return cb(null, ret);
              });
      }
@@ -280,68 +409,102 @@
         Callback Function
      ,**/
      function activityAdd(creatorId, activityName, activityDescription, requestedAttendees, cb) {
-         session.run(
-             'MATCH (creator:User) \
-             WHERE ID(creator) = $creatorId \
-             CREATE (creator)-[:CREATED]->(activity:Activity {\
-               name: $activityName, \
-               description: $activityDescription\
-             }) \
-             RETURN activity',
-             {
-                 creatorId: neo4j.int(creatorId),
-                 activityName: activityName,
-                 activityDescription: activityDescription
-             }
-         ).then(results => {
-             session.close();
-             activityId = results.records[0].get('activity').identity.low;
-             activityInvite(activityId, requestedAttendees, () => {
-                 return cb(null, results.records[0].get('activity'));
-             })
+         findById(creatorId, function(err, user) {
+             if (!user) { return cb("[-] User " + creatorId + " does not exist in database.")}
+             session.run(
+                 'MATCH (creator:User) \
+              WHERE ID(creator) = $creatorId \
+              CREATE (creator)-[:CREATED]->(activity:Activity {\
+                name: $activityName, \
+                description: $activityDescription\
+              }) \
+              RETURN activity',
+                 {
+                     creatorId: neo4j.int(creatorId),
+                     activityName: activityName,
+                     activityDescription: activityDescription
+                 }
+             ).then(results => {
+                 console.log("[+] Created Activity " + activityName);
+                 session.close();
+                 activityId = results.records[0].get('activity').identity.low;
+                 activityInvite(activityId, requestedAttendees, () => {
+                     return cb(null, results.records[0].get('activity'));
+                 })
+             });
          });
      }
      function activityDel(activityId, cb) {
-         session.run(
-             'MATCH (activity:Activity) \
-              WHERE ID(activity) = $activityId \
-              DETACH DELETE activity',
-             {
-                 activityId: neo4j.int(activityId)
-             }
-         ).then(results => {
-             session.close();
-             return cb(null);
-         })
-     }
-     function activityInvite(activityId, requestedAttendees, cb) {
-         requestedAttendees.forEach(user_email => {
+         console.log("[*] Checking that activity " + activityId + " exists in database.");
+         findActivityById(activityId, function (err, activity) {
+             if (!activity) { return cb(err) }
              session.run(
-                 'MATCH (activity:Activity),(student:User) \
-                 WHERE ID(activity) = $activityId AND student.email = $email \
-                 CREATE (student)-[rel:INVITED_TO]->(activity) \
-                 SET rel.time = TIMESTAMP()',
+                 'MATCH (activity:Activity) \
+                  WHERE ID(activity) = $activityId \
+                  DETACH DELETE activity',
                  {
-                     activityId: neo4j.int(activityId),
-                     email: user_email
+                     activityId: neo4j.int(activityId)
                  }
              ).then(results => {
                  session.close();
+                 console.log("[+] Deleted activity " + activityId + " from database.");
+                 return cb(null);
+             });
+         });
+     }
+     function activityInvite(activityId, requestedAttendees, cb) {
+         console.log("[*] Checking that activity " + activityId + " exists in database.");
+         findActivityById(activityId, function (err, activity) {
+             if (!activity) { return cb(err) }
+             requestedAttendees.forEach(user_email => {
+                 session.run(
+                     'MATCH (activity:Activity),(student:User) \
+                      WHERE ID(activity) = $activityId AND student.email = $email \
+                      CREATE (student)-[rel:INVITED_TO]->(activity) \
+                      SET rel.time = TIMESTAMP()',
+                     {
+                         activityId: neo4j.int(activityId),
+                         email: user_email
+                     }
+                 ).then(results => {
+                     session.close();
+                     console.log("[+] Invited user " + user_email + ".");
+                 });
              });
          });
          return cb();
      }
 
      function joinActivity(userId, activityId, cb) {
-         session.run(
-             'MATCH (activity:Activity),(student:User) \
-             WHERE ID(activity) = $activityId AND ID(student) = $studentId \
-             CREATE (student)-[rel:JOINED]->(activity) \
-             SET rel.time = TIMESTAMP() \
-             RETURN activity'
-         ).then(results => {
-             session.close();
-             return cb(null, results.records[0].get('activity'));
+         var userPromise = new Promise((resolve, reject) => {
+             findById((err, user) => {
+                 if (!user) { console.log("[-] Activity " + userId + "does not exist"); reject(false); }
+                 else { resolve(true); }
+             });
+         });
+
+         var activityPromise = new Promise((resolve, reject) => {
+             getActivityById((err, activity) => {
+                 if (!activity) { console.log("[-] Activity " + activityId + "does not exist"); reject(false); }
+                 else { resolve(true); }
+             });
+         });
+
+         Promise.all([userPromise, activityPromise]).then(results => {
+             if (results[0] && results[1]) { // If both user and activity exist:
+                 console.log("[+] Found both user and activity.");
+                 session.run(
+                     'MATCH (activity:Activity),(student:User) \
+                      WHERE ID(activity) = $activityId AND ID(student) = $studentId \
+                      CREATE (student)-[rel:JOINED]->(activity) \
+                      SET rel.time = TIMESTAMP() \
+                      RETURN activity, student'
+                 ).then(results => {
+                     session.close();
+                     console.log("[+] User " + results.records[0].get('student').properties.email + ' requested to join activity "' + results.records[0].get('student').properties.name + '"');
+                     return cb(null, results.records[0].get('activity'));
+                 });
+             }
          });
      }
 
@@ -358,7 +521,6 @@
              return cb(null, activities);
          });
      }
-
    #+END_SRC
 
 ** Message Operations
@@ -566,7 +728,8 @@
         link(href="css/style.css", type="text/css", rel="stylesheet", media="screen,projection")
 
         //Prism CSS
-        link(href="themes/prism.css" rel="stylesheet") 
+        link(href="themes/prism.css" rel="stylesheet")
+
   #+END_SRC 
 
 ** Header Mixin
@@ -881,13 +1044,42 @@
    #+NAME: create_page
    #+BEGIN_SRC javascript
      app.get('/create', isTeacher, function(req, res) {
-         res.render('create', { title: "Creating Activity" });
+         const activityPromise = new Promise((resolve, reject) => {
+             getActivities((err, activities) => {
+                 if (err) { reject(err); }
+                 else { resolve(activities); }
+             });
+         });
+         const messagePromise = new Promise((resolve, reject) => {
+             getMessagesForUser(req.user.identity.low, (err, messages) => {
+                 if (err) { reject(err); }
+                 else { resolve(messages); }
+             });
+         });
+         const userPromise = new Promise((resolve, reject) => {
+             getUsers((err, users) => {
+                 if (err) { reject(err); }
+                 else { resolve(users); }
+             });
+         });
+         Promise.all([activityPromise, messagePromise, userPromise]).then((results) => {
+             activities = results[0];
+             messages = results[1];
+             users = results[2];
+             res.render('create', {
+                 title: "Creating Activity",
+                 user: req.user,
+                 activities: activities,
+                 messageRecords: messages,
+                 users: users
+             });
+         })
      });
      app.post('/create', isTeacher, function(req, res) {
          activityAdd(req.user.identity.low,
                      req.body.activityName,
                      req.body.activityDescription,
-                     req.body.requestedAttendees.split(", "),
+                     parseRequestedAttendees(req.body.requestedAttendees),
                      (err, activity) => {
                          console.log("Created activity \"" + activity.properties.description + "\"");
                          res.redirect('/profile');
@@ -901,6 +1093,8 @@
 
      block title
        title= title
+       //Autocomplete CSS (here because it's sort of page specific)
+       link(href="css/auto-complete.css" rel="stylesheet")
 
      block content
        div.container
@@ -922,6 +1116,38 @@
            center
            div.row
              button.col.s12.btn.btn-large.waves-effect.red.darken-2(type="submit") Login
+         script(src="js/auto-complete.js")
+         script var users = [!{users.map((x) => { return JSON.stringify(x) })}]
+         script(src="js/create-activity-autocomplete.js")
+   #+END_SRC
+
+   #+BEGIN_SRC javascript :tangle ./public/js/create-activity-autocomplete.js
+     var requestedAttendees = [];
+     var choices = users.map(x => { return x.properties.firstName + ' ' + x.properties.lastName });
+     new autoComplete({
+         selector: 'input[name="requestedAttendees"]',
+         minChars: 1,
+         source: function(term, suggest){
+             var choices = users.map(x => { return x.properties.firstName + ' ' + x.properties.lastName; });
+             var matches = [];
+             term = term.toLowerCase();
+             term_array = term.split(',');
+             requestedAttendees = document.getElementById('requestedAttendees').value.split(',');
+             requestedAttendees.pop();
+             term = term_array[term_array.length - 1].trim();
+             for (i=0; i<choices.length; i++)
+                 {if (~choices[i].toLowerCase().indexOf(term)) { matches.push(choices[i]); }}
+             suggest(matches);
+         },
+         renderItem: function (item, search) {
+             return '<div class="autocomplete-suggestion" name-value="' + item + '">' + item + '</div>'
+         },
+         onSelect: function(e, term, item) {
+             index = choices.indexOf(item.getAttribute('name-value'));
+             requestedAttendees.push(users[index].properties.email);
+             document.getElementById('requestedAttendees').value = requestedAttendees.join(', ');
+         }
+     });
    #+END_SRC
 
 ** 404 Error page
@@ -980,6 +1206,11 @@
 
          res.redirect('/');
      }
+
+     function parseRequestedAttendees(requestedAttendees) {
+         // Later, I'll want to parse groups as well, but for now it's just emails, and all I have to do is return a list of emails
+         return requestedAttendees.split(", ").map(x => { return x.trim(); });
+     }
    #+END_SRC
 
 ** Run Server
@@ -1009,5 +1240,6 @@
     <<404_error_page>>
     <<route_middleware_functions>>
     <<run_server>>
-    <<interactive_shell_configuration>>
+    <<interactive_shell_user_ops>>
+    <<interactive_shell_startup>>
   #+END_SRC
